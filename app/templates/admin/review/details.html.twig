@@ -1,0 +1,275 @@
+{% extends '@!EasyAdmin/crud/detail.html.twig' %}
+
+{% block configured_javascripts %}
+    {{ parent() }}
+    <script type="application/javascript" src="{{ asset('assets/review/js/details.js') }}"></script>
+{% endblock %}
+
+{% block main %}
+    {{ parent() }}
+    <div class="field-form_panel">
+        <div class="form-panel">
+            <div class="form-panel-header  ">
+                <div class="form-panel-title">
+                    <a href="#" class="not-collapsible">
+                        <i class="form-panel-icon fa fa-eye"></i>
+                        Visibility
+                    </a>
+                </div>
+            </div>
+
+            <div id="content-01GVNDMPG57GEKJDKR2174Z3ED" class="form-panel-body  show">
+                <dl class="datalist">
+                    <div class="data-row field-id">
+                        <dt>
+                            Status
+                        </dt>
+                        <dd>
+                            <input data-id="{{ entity.instance.id }}" class="toSwitch" id="option1" type="checkbox" name="option1" {% if entity.instance.visible %} checked {% endif %} />
+                        </dd>
+                    </div>
+                </dl>
+            </div>
+        </div>
+    </div>
+
+
+    <div class="field-form_panel">
+        <div class="form-panel">
+            <div class="form-panel-header  ">
+                <div class="form-panel-title">
+                    <a href="#" class="not-collapsible">
+
+                        <i class="form-panel-icon fa fa-globe"></i>
+                        Review Translation
+                    </a>
+
+                </div>
+            </div>
+
+            <div id="content-11GVNDMPG57GEKJDKR2174Z3ED" class="form-panel-body  show">
+
+                <div class="row">
+                    <div class="col-md-9 col-xxl-7">
+                        <div class="field-textarea form-group">
+                            <label for="Review_originalReview" class="form-control-label">Original Review</label>
+                            <div class="form-widget">
+                                <textarea id="Review_originalReview" name="originalReview" rows="5" class="form-control" style="overflow: hidden; resize: none; box-sizing: border-box; height: 119px;">{{ entity.instance.originalReview }}</textarea>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="flex-fill"></div>
+
+                    <div class="col-md-6 col-xxl-5">
+                        <div class="field-select form-group">
+                            <label class="form-control-label" for="Review_translationLanguage-ts-control" id="Review_translationLanguage-ts-label">Translation Language</label>
+                            <div class="form-widget">
+                                <select id="Review_translationLanguage" name="Review[translationLanguage]" class="form-select " tabindex="-1">
+                                    <option value="">Select..</option>
+                                    {% for lang,id in languages %}
+                                        <option value="{{lang}}">{{ lang }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="flex-fill"></div>
+
+                    <div class="col-md-9 col-xxl-7">
+                        <div class="field-textarea form-group">
+                            <label for="Review_translatedReview" class="form-control-label">Translated Review</label>
+                            <div class="form-widget">
+                                <textarea id="Review_translatedReview" name="translatedReview" rows="5" class="form-control" style="overflow: hidden; resize: none; box-sizing: border-box; height: 119px;"></textarea>
+                            </div>
+                        </div>
+                    </div>
+
+                    {% for translation in entity.instance.translations %}
+                        <input type="hidden" id="Review_translatedReview_{{ translation.language.code }}" name="translatedReview" value="{{ translation.text }}">
+                    {% endfor %}
+
+
+                    <div class="flex-fill"></div>
+
+                    <div>
+                        <div class="update-translations btn btn-primary" href="#" data-action-name="edit">
+                            <span class="action-label">Update</span>
+                        </div>
+                        <span style="display: none;" class="badge badge-success done-msg">
+                            Done <i class="fa-fw fa fa-check"></i>
+                        </span>
+                        <span style="display: none;" class="badge badge-info updating-msg">
+                            Updating..
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+{#    <input type="checkbox" class="form-check-input switchified" id="01GVNCNERV3T4TKNE6TSRVN1PJ" checked="" data-toggle-url="http://bbg-reviews.d/?crudAction=edit&amp;crudControllerFqcn=App%5CController%5CAdmin%5CReviewCrudController&amp;csrfToken=03792e6e150cce754ecc3.VK6loIaycnUhgbxUIgA0liZOo8Ixq9QkVGQN2BjFdyo.LJni2LOKSg9W-f81ckIE7wsnjrJl5IJhDClgrWyvRHJiys2VyfggLE7t0w&amp;entityId=5&amp;fieldName=visible" autocomplete="off">#}
+{#    {% for field in entity.fields %}#}
+
+
+{#        {% if field.value.timestamp is defined  %}#}
+{#            <div title="{{ field.value|date('Y-m-d H:i:s') }}">{{ field.value|date('Y-m-d H:i:s') }}</div>#}
+{#        {% else %}#}
+
+{#            <div title="{{ field.value }}">{{ field.formattedValue|raw|nl2br }}</div>#}
+{#        {% endif%}#}
+
+
+
+{#    {% endfor %}#}
+
+
+{#    <form name="Review" method="post" class="ea-new-form" id="new-Review-form">#}
+
+{#        <div class="row">#}
+
+{#            {% for field in entity.fields %}#}
+
+{#                <div class="col-md-4">#}
+{#                    <div class="field-association form-group">#}
+{#                        <label class="form-control-label required" for="Review_shop-ts-control" id="Review_shop-ts-label">{{ field.label }}</label>#}
+{#                        <div class="form-widget">#}
+{#                            {% if field.value.timestamp is defined  %}#}
+{#                                {% set val = field.value|date('Y-m-d H:i:s') %}#}
+{#                            {% else %}#}
+{#                                {% set val = field.formattedValue|raw|nl2br %}#}
+{#                            {% endif%}#}
+{#                            <input disabled type="text" class="form-control" value="{{ val }}">#}
+{#                        </div>#}
+{#                    </div>#}
+{#                </div>#}
+
+{#            {% endfor %}#}
+
+
+
+
+{#            <div class="col-md-6">#}
+{#                <div class="field-association form-group"><label class="form-control-label required" for="Review_user-ts-control" id="Review_user-ts-label">User</label><div class="form-widget">#}
+
+
+
+{#                        <select id="Review_user" name="Review[user]" data-ea-widget="ea-autocomplete" data-ea-i18n-no-results-found="No results found" data-ea-i18n-no-more-results="No more results" data-ea-i18n-loading-more-results="Loading more results…" class="form-select tomselected ts-hidden-accessible" tabindex="-1"><option value="2">admin@admin.com</option></select><div class="ts-wrapper form-select single plugin-dropdown_input plugin-clear_button full has-items"><div class="ts-control" role="combobox" aria-haspopup="listbox" aria-expanded="false" aria-controls="Review_user-ts-dropdown" id="Review_user-ts-control" aria-labelledby="Review_user-ts-label" tabindex="0"><div data-value="2" class="item" data-ts-item="">admin@admin.com</div><input class="items-placeholder" tabindex="-1" placeholder=""><div class="clear-button" title="">⨯</div></div><div class="ts-dropdown single plugin-dropdown_input plugin-clear_button" style="display: none;"><div class="dropdown-input-wrap"><input type="select-one" autocomplete="off" size="1" tabindex="-1" class="dropdown-input"></div><div role="listbox" tabindex="-1" class="ts-dropdown-content" id="Review_user-ts-dropdown" aria-labelledby="Review_user-ts-label"></div></div></div>#}
+
+
+
+{#                    </div>#}
+{#                </div>#}
+{#            </div>#}
+
+
+
+{#            <div class="col-md-6">#}
+{#                <div class="field-text form-group"><label for="Review_sku" class="form-control-label">Sku</label><div class="form-widget">#}
+
+
+{#                        <input type="text" id="Review_sku" name="Review[sku]" class="form-control">#}
+
+
+{#                    </div>#}
+{#                </div>#}
+{#            </div>#}
+
+
+
+{#            <div class="col-md-4">#}
+{#                <div class="field-date form-group"><label for="Review_reviewDate" class="form-control-label">Date</label><div class="form-widget">#}
+
+
+{#                        <div class="datetime-widget datetime-widget-date"><input type="date" id="Review_reviewDate" name="Review[reviewDate]" class="form-control"></div>#}
+
+
+{#                    </div>#}
+{#                </div>#}
+{#            </div>#}
+
+
+
+{#            <div class="">#}
+{#                <div class="field-boolean form-group"><div class="form-widget">#}
+
+
+{#                        <div class="form-check form-switch"><input type="checkbox" id="Review_visible" name="Review[visible]" data-ea-align="center" class="form-check-input" value="1">#}
+{#                            <label class="checkbox-switch form-check-label" for="Review_visible">Visible</label></div>#}
+
+
+{#                    </div>#}
+{#                </div>#}
+{#            </div>#}
+
+{#            <div class="flex-fill"></div>#}
+
+
+{#            <div class="col-md-9 col-xxl-7">#}
+{#                <div class="field-textarea form-group"><label for="Review_originalReview" class="form-control-label required">Review</label><div class="form-widget">#}
+
+
+{#                        <textarea id="Review_originalReview" name="Review[originalReview]" required="required" rows="5" data-ea-textarea-field="data-ea-textarea-field" class="form-control" style="overflow: hidden; resize: none; box-sizing: border-box; height: 119px;"></textarea>#}
+
+
+{#                    </div>#}
+{#                </div>#}
+{#            </div>#}
+
+{#            <div class="flex-fill"></div>#}
+
+
+{#            <div class="col-md-6 col-xxl-5">#}
+{#                <div class="field-select form-group"><label class="form-control-label" for="Review_translationLanguage-ts-control" id="Review_translationLanguage-ts-label">Translation Language</label><div class="form-widget">#}
+
+
+
+{#                        <select id="Review_translationLanguage" name="Review[translationLanguage]" data-ea-widget="ea-autocomplete" data-ea-autocomplete-render-items-as-html="false" data-ea-i18n-no-results-found="No results found" data-ea-i18n-no-more-results="No more results" data-ea-i18n-loading-more-results="Loading more results…" class="form-select tomselected ts-hidden-accessible" tabindex="-1"><option value=""></option><option value="1">DE</option><option value="2">EN</option></select><div class="ts-wrapper form-select single plugin-dropdown_input plugin-clear_button"><div class="ts-control" role="combobox" aria-haspopup="listbox" aria-expanded="false" aria-controls="Review_translationLanguage-ts-dropdown" id="Review_translationLanguage-ts-control" aria-labelledby="Review_translationLanguage-ts-label" tabindex="0"><input class="items-placeholder" tabindex="-1" placeholder=""><div class="clear-button" title="">⨯</div></div><div class="ts-dropdown single plugin-dropdown_input plugin-clear_button" style="display: none;"><div class="dropdown-input-wrap"><input type="select-one" autocomplete="off" size="1" tabindex="-1" class="dropdown-input"></div><div role="listbox" tabindex="-1" class="ts-dropdown-content" id="Review_translationLanguage-ts-dropdown" aria-labelledby="Review_translationLanguage-ts-label"></div></div></div>#}
+
+
+
+{#                    </div>#}
+{#                </div>#}
+{#            </div>#}
+
+{#            <div class="flex-fill"></div>#}
+
+
+{#            <div class="col-md-9 col-xxl-7">#}
+{#                <div class="field-textarea form-group"><label for="Review_translatedReview" class="form-control-label">Translated Review</label><div class="form-widget">#}
+
+
+{#                        <textarea id="Review_translatedReview" name="Review[translatedReview]" rows="5" data-ea-textarea-field="data-ea-textarea-field" class="form-control" style="overflow: hidden; resize: none; box-sizing: border-box; height: 119px;"></textarea>#}
+
+
+{#                    </div>#}
+{#                </div>#}
+{#            </div>#}
+
+{#            <div class="flex-fill"></div>#}
+
+
+{#            <div class="col-md-4">#}
+{#                <div class="field-integer form-group"><label for="Review_rating" class="form-control-label required">Rating</label><div class="form-widget">#}
+
+
+{#                        <input type="number" id="Review_rating" name="Review[rating]" required="required" class="form-control">#}
+
+
+{#                    </div>#}
+{#                </div>#}
+{#            </div>#}
+
+
+
+
+{#            <input type="hidden" id="Review_translatedReview_DE" name="Review[translatedReview_DE]"><input type="hidden" id="Review_translatedReview_EN" name="Review[translatedReview_EN]"><input type="hidden" id="Review_id" name="Review[id]" required="required"><input type="hidden" id="Review__token" name="Review[_token]" value="a9bad8297bee08d37.kKupFvO23GQLxqWxMMDCfsEW3mfoKPcN2V1V6aJSXF8.5sXaSZGEhCpUjMDpXar0Bp5cllLcR59d4ChmgvFgDHL5ksNdlt63XD_-_A">#}
+
+{#        </div>     </form>#}
+
+
+{% endblock %}
+
+

@@ -1,0 +1,73 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Log in!
+{% endblock %}
+
+{% block body %}
+    <div class="flex justify-center ">
+        <div class="w-1/2 shadow-2xl border-1 border-[#1d1b1b] ">
+            <div class="m-5">
+                <form method="post" class="flex flex-col">
+                    {% if error %}
+                        <div class="alert alert-danger bg-red-300 text-white p-3">{{ error.messageKey|trans(error.messageData, 'security') }}</div>
+                    {% endif %}
+
+                    {% if app.user %}
+                        <div class="mb-3">
+                            You are logged in as
+                            {{ app.user.userIdentifier }},
+                            <a href="{{ path('app_logout') }}">Logout</a>
+                        </div>
+                    {% endif %}
+                    <div>
+                        <img class="w-42 h-42" src="/images/products/upload_58_php19612.tmp.jpg.png" alt="Tall"
+                             class="h-full w-full object-cover object-center group-hover:opacity-75">
+                        <h1 class="h3 mb-3 font-weight-normal">Please sign in</h1>
+                    </div>
+                    <div class="flex flex-row pb-4">
+                        <div class="w-44">
+                            <label for="username">Email</label>
+                        </div>
+                        <div>
+                            <input type="email" value="{{ last_username }}" name="_username" id="username"
+                                   class="form-control" autocomplete="email" required autofocus>
+                        </div>
+                    </div>
+                    <div class="flex flex-row pb-4">
+                        <div class="w-44">
+                            <label for="password">Password</label>
+                        </div>
+                        <div>
+                            <input type="password" name="_password" id="password" class="form-control"
+                                   autocomplete="current-password" required>
+                        </div>
+                    </div>
+                    <div class="flex flex-row pb-4">
+                        <label>
+                            <input type="checkbox" name="_remember_me" checked>
+                            Keep me logged in
+                        </label>
+                    </div>
+                    <input
+                            type="hidden" name="_csrf_token" value="{{ csrf_token('authenticate') }}">
+
+                    {#
+                    Uncomment this section and add a remember_me option below your firewall to activate remember me functionality.
+                    See https://symfony.com/doc/current/security/remember_me.html
+
+                    <div class="checkbox mb-3">
+                        <input type="checkbox" name="_remember_me" id="_remember_me">
+                        <label for="_remember_me">Remember me</label>
+                    </div>
+                    #}
+                    <div class="pb-4">
+                        <button class=" btn-primary text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg px-5 py-2.5 me-2 mb-2 dark:bg-blue-600 dark:hover:bg-blue-700 focus:outline-none dark:focus:ring-blue-800"
+                                type="submit">
+                            Sign in
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+{% endblock %}

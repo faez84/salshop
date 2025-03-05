@@ -1,0 +1,99 @@
+{% extends '@EasyAdmin/layout.html.twig' %}
+
+{% block body_class %}{{ parent() }} app-custom{% endblock %}
+
+{% block page_title %} Review import {% endblock %}
+
+{% block head_stylesheets %}
+    {{ parent ()}}
+    <link rel="stylesheet" href="/assets/upload.css">
+{% endblock %}
+
+{% block head_javascript %}
+    {{ parent ()}}
+    <script src="{{ asset('assets/jquery-3.6.3.min.js') }}"></script>
+{% endblock head_javascript %}
+
+{% block page_header_wrapper %}
+    <div class="container-fluid">
+        <div class="row">
+            <div class="col-md-12">
+                {% block page_header %}
+                    <h1 class="page-title">
+                        {{ 'csv_import.page_title'|trans({}, 'admin') }}
+                    </h1>
+                {% endblock %}
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block content %}
+
+    <script>
+        $("form").on("change", ".file-upload-field", function(){
+            $(this).parent(".file-upload-wrapper").attr("data-text",         $(this).val().replace(/.*(\/|\\)/, '') );
+        });
+    </script>
+    <div class="container-fluid">
+        <div class="row">
+            <div class="col-md-10">
+                {% block main %}
+                    <div class="easyadmin-content">
+                        {% block content_header_wrapper %}
+                            <div class="page-content-header">
+                                {% block content_header %}
+                                    <div class="page-title">
+                                        <h1>Upload file</h1>
+                                    </div>
+                                {% endblock %}
+
+                            </div>
+                        {% endblock %}
+
+
+                            {% block flash_messages %}
+                                {{ parent() }}
+                            {% endblock %}
+                            <div class="row">
+                                <div class="col-md-12">
+                                    {% block main_content %}
+                                        <div class="rules">
+                                            The CSV file should have the following headers:
+                                            <ul>
+                                                <li>shop</li>
+                                                <li>country</li>
+                                                <li>language</li>
+                                                <li>sku</li>
+                                                <li>review_date</li>
+                                                <li>rating</li>
+                                                <li>visibility</li>
+                                                <li>text</li>
+                                                <li>user</li>
+                                            </ul>
+                                            <a href="{{ asset('example/review_tool_import_example.csv') }}">Download an example (Template) here.</a>
+                                        </div>
+                                        <div class="main-block">
+                                            {{ form_start(form) }}
+                                            <div class="errors">
+                                                {{ form_errors(form) }}
+                                            </div>
+                                            {{ form_widget(form) }}
+{#                                            <p class="mt-1 text-sm text-gray-500 dark:text-gray-300" id="file_input_help">#}
+{#                                                CSV File.</p>#}
+
+                                            <div style="margin-top: 50px;">
+                                                <button type="submit" id="csv_file_save" class="btn btn-primary">Upload</button>
+                                            </div>
+                                            {{ form_end(form) }}
+                                        </div>
+                                    {% endblock %}
+                                </div>
+                            </div>
+
+                    </div>
+                {% endblock %}
+            </div>
+        </div>
+    </div>
+{% endblock %}

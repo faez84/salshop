@@ -1,0 +1,15 @@
+{% extends 'base.html.twig' %}
+{% block body %}
+
+    <div class="container mx-auto px-4 py-8 border-2 border-b-gray-600">
+        <div class="flex flex-row justify-center">
+            <div class="">
+                {{ form_start(form, {'attr': {'novalidate': 'novalidate'}}) }}
+                {{ form_widget(form) }}
+                <input type="hidden" id="addressId" value="{{ addressId }}">
+                {{ form_end(form) }}
+            </div>
+        </div>
+    </div>
+
+{% endblock %}

@@ -1,0 +1,104 @@
+# This workflow uses actions that are not certified by GitHub.
+# They are provided by a third-party and are governed by
+# separate terms of service, privacy policy, and support
+# documentation.
+
+name: _test
+
+on:
+  workflow_call:
+permissions:
+  contents: read
+defaults:
+ run:
+  working-directory: ./app
+
+jobs:
+  Init-phpqa:
+      runs-on: ubuntu-latest
+      steps:
+        - name: Checkout
+          uses: actions/checkout@v4
+  phpqa-tests:
+    runs-on: ubuntu-latest
+    services:
+      mysql:
+        image: mysql:8
+        env:
+          MYSQL_ROOT_PASSWORD: root
+          MYSQL_PASSWORD: root
+          MYSQL_DATABASE: shopnewnew
+        ports:
+          - 3306:3306
+        options: --health-cmd="mysqladmin ping" --health-interval=10s --health-timeout=5s --health-retries=3      
+    steps:
+    #  To automatically get bug fixes and new Php versions for shivammathur/setup-php,
+    # change this to (see https://github.com/shivammathur/setup-php#bookmark-versioning):
+    # uses: shivammathur/setup-php@v2
+    - uses: shivammathur/setup-php@2cb9b829437ee246e9b3cac53555a39208ca6d28
+      with:
+        php-version: '8.2'
+    - uses: actions/checkout@v4
+    - name: Copy .env.test.local
+      run: php -r "file_exists('.env.test.local') || copy('.env.test', '.env.test.local');"
+    - name: Check file existence
+      env:
+        FILE: .env.dist
+      shell: bash
+      run: |
+        if [[ -f $FILE ]]; then
+          echo "$FILE exists!"
+        else
+          echo "$FILE does not exist!"
+        fi
+    - name: display the fodler
+      run: |
+        pwd
+        ls
+    - name: Build env file 
+      run: sed  -i  's/%%APPSECRET%%/${{ secrets.APPSECRET }}/g' .env.dist
+    - name: Build env file 
+      run: sed  -i  's/%%DBUS%%/${{ secrets.DBUS }}/g' .env.dist
+    - name: Build env file 
+      run: sed  -i  's/%%DBPASS%%/${{ secrets.DBPASS }}/g' .env.dist
+    - name: Build env file 
+      run: sed  -i  's/%%DBHOST%%/${{ secrets.DBHOST }}/g' .env.dist
+    - name: Build env file 
+      run: sed  -i  's/%%DBNAME%%/${{ secrets.DBNAME }}/g' .env.dist
+    - name: Build env file 
+      run: sed  -i  's/%%DBPORT%%/${{ secrets.DBPORT }}/g' .env.dist
+
+    - name: Build env file 
+      run: sed  -i  's/%%JWTPASSPHRASE%%/${{ secrets.JWTPASSPHRASE }}/g' .env.dist
+    - name: Build env file 
+      run: sed  -i  's/%%MERCUREJWTSECRET%%/${{ secrets.MERCUREJWTSECRET }}/g' .env.dist
+    - name: Replace env file
+      run: |
+        rm .env
+        mv .env.dist .env
+    - name: Cat .env
+      run: cat .env
+    - name: Cache Composer packages
+      id: composer-cache
+      uses: actions/cache@v3
+      with:
+        path: vendor
+        key: ${{ runner.os }}-php-${{ hashFiles('**/composer.lock') }}
+        restore-keys: |
+          ${{ runner.os }}-php-
+    - name: remove vendor
+      run: rm -rf var/cache/dev 
+    - name: Install Dependencies
+      env:
+        DB_CONNECTION: mysql
+        DB_HOST: 127.0.0.1
+        DB_DATABASE: shopnewnew
+        DB_PORT: 3306
+        DB_USER: root
+        DB_PASSWORD: root
+        DATABASE_URL: mysql://root:root@127.0.0.1:3306/shopnewnew
+      run: composer install
+    - name: install phpqa
+      run: composer s:phpqa:install
+    - name: run phpqa
+      run: composer s:phpqa

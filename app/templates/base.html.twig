@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="UTF-8">
+		<title>
+			{% block title %}Welcome!
+			{% endblock %}
+		</title>
+		<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 128 128%22><text y=%221.2em%22 font-size=%2296%22>⚫️</text><text y=%221.3em%22 x=%220.2em%22 font-size=%2276%22 fill=%22%23fff%22>sf</text></svg>">
+		{% block stylesheets %}
+			<link rel="stylesheet" href="{{ asset('styles/app.css') }}">
+		{% endblock %}
+
+		{% block javascripts %}
+			{% block importmap %}
+				{{ importmap('app') }}
+			{% endblock %}
+
+		{% endblock %}
+	</head>
+	<body>
+		<div class="flex flex-row justify-center">
+			<div class="w-[1024px] sm:w-[80%] h-full  p-3 shadow-2xl border-1 border-[#1d1b1b]  lg:text-lg sm:text-5xl justify-center">
+				<div class=" h-44 bg-gradient-to-b from-cyan-900"></div>
+				{{ include('layout/header.html.twig') }}
+				{# read and display just one flash message type #}
+				{% for message in app.flashes('notice') %}
+					<div class="flash-notice">
+						{{ message }}
+					</div>
+				{% endfor %}
+				<div class="py-8"> {% block body %}{% endblock %}
+					</div>
+					{{ include('layout/footer.html.twig') }}
+				</div>
+			</div>
+		</body>
+	</html>

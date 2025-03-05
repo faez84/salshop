@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<pmd version="@package_version@" tool="phpmd" timestamp="2024-10-17T01:03:48+02:00">
+  <file name="C:\gg\symfony\shopnewnew\src\DataFixtures\UserFixtures.php">
+    <violation beginline="25" endline="25" rule="StaticAccess" ruleset="Clean Code Rules" externalInfoUrl="https://phpmd.org/rules/cleancode.html#staticaccess" priority="1">
+      Avoid using static access to class &#039;\App\Factory\UserFactory&#039; in method &#039;load&#039;.
+    </violation>
+  </file>
+</pmd>

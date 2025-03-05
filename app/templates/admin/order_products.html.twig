@@ -1,0 +1,58 @@
+{% extends '@EasyAdmin/page/content.html.twig' %}
+
+{% block content_title 'Order Products' %}
+{% block main %}
+	<table class="table datagrid ">
+		<thead>
+			<tr>
+				<th>
+					id
+				</th>
+
+				<th>
+					Order Id
+				</th>
+
+				<th>
+					Product
+				</th>
+
+				<th>
+					Amount
+				</th>
+
+				<th>
+					Cost
+				</th>
+
+			</tr>
+		</thead>
+		<tbody>
+			{% for orderProd in orderProds %}
+				<tr>
+					<td>
+						{{ orderProd.id }}
+					</td>
+
+					<td>
+						{{ orderProd.oorder.getId() }}
+					</td>
+
+					<td>
+						{{ orderProd.pproduct.getTitle() }}
+					</td>
+
+					<td>
+						{{ orderProd.getAmount() }}
+					</td>
+
+					<td>
+						{{ orderProd.getCost()|format_currency('EUR', {rounding_mode: 'floor'}) }}
+					</td>
+
+				</tr>
+			{% endfor %}
+		</tbody>
+	</table>
+{% endblock %}
+

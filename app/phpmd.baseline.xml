@@ -1,0 +1,4 @@
+<?xml version="1.0"?>
+<phpmd-baseline>
+ <violation rule="PHPMD\Rule\Design\MissingTemplateParam" file="src/State/UserHashPasswordStateProcessor.php" />
+</phpmd-baseline>

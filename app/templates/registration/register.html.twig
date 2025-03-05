@@ -1,0 +1,52 @@
+{% extends "base.html.twig" %}
+{% block body %}
+    <div class="flex justify-center ">
+        <div class="w-1/2 shadow-2xl border-1 border-[#1d1b1b]    m-5">
+            <div class="m-5">
+                {% for flash_error in app.flashes('verify_email_error') %}
+                    <div class="alert alert-danger" role="alert">{{ flash_error }}</div>
+                {% endfor %}
+                {% if not registrationForm.vars.valid %}
+                    <div class="alert alert-danger">
+                        {{ form_errors(registrationForm) }}
+                        {% for children in registrationForm.children %}
+                            {% if not children.vars.valid %}
+                                {{ form_errors(children) }}
+                            {% endif %}
+                            {% for child in children %}
+                                {% if not child.vars.valid %}
+                                    {{ form_errors(child) }}
+                                {% endif %}
+                            {% endfor %}
+                        {% endfor %}
+                    </div>
+                {% endif %}
+                {{ form_errors(registrationForm) }}
+                <div>
+                    <h1 class="h3 mb-3 font-weight-normal">Please sign in</h1>
+                </div>
+                {{ form_start(registrationForm) }}
+                <div class="flex flex-row pb-4">
+                    {{ form_label(registrationForm.email, null, {'label_attr': {'class': 'w-44'}}) }}
+                    {{ form_widget(registrationForm.email) }}
+                </div>
+                <div class="flex flex-row pb-4">
+                    {{ form_label(registrationForm.password.first, null, {'label_attr': {'class': 'w-44'}}) }}
+                    {{ form_widget(registrationForm.password.first) }}
+                </div>
+                <div class="flex flex-row pb-4">
+                    {{ form_label(registrationForm.password.second, null, {'label_attr': {'class': 'w-44'}}) }}
+                    {{ form_widget(registrationForm.password.second) }}
+                </div>
+                {{ form_row(registrationForm.agreeTerms) }}
+                <div class="flex flex-row pb-4">
+                    <button class=" btn-primary text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg px-5 py-2.5 me-2 mb-2 dark:bg-blue-600 dark:hover:bg-blue-700 focus:outline-none dark:focus:ring-blue-800"
+                            type="submit">
+                        Register
+                    </button>
+                </div>
+                {{ form_end(registrationForm) }}
+            </div>
+        </div>
+    </div>
+{% endblock %}

@@ -1,0 +1,89 @@
+# This file is the entry point to configure your own services.
+# Files in the packages/ subdirectory configure your dependencies.
+
+# Put parameters here that don't need to change on each machine where the app is deployed
+# https://symfony.com/doc/current/best_practices.html#use-parameters-for-application-configuration
+parameters:
+
+services:
+    # default configuration for services in *this* file
+    _defaults:
+        autowire: true      # Automatically injects dependencies in your services.
+        autoconfigure: true # Automatically registers your services as commands, event subscribers, etc.
+        public: true
+    # makes classes in src/ available to be used as services
+    # this creates a service per class whose id is the fully-qualified class name
+    App\:
+        resource: '../src/'
+        exclude:
+            - '../src/DependencyInjection/'
+            - '../src/Entity/'
+            - '../src/DataFixtures/'
+            - '../src/Factory/'
+            - '../src/Kernel.php'
+    payment.PaymentMethodValidator:
+        class: App\Service\Payment\PaymentMethodValidator
+
+    App\Service\BasketManager:
+        class: App\Service\BasketManager
+        autowire: true
+        public: true
+    App\Entity\Order:
+        class: App\Entity\Order
+        autowire: true
+        public: true
+    # add more service definitions when explicit configuration is needed
+    # please note that last definitions always *replace* previous ones
+#fos_http_cache:
+#    cache_control:
+#        defaults:
+#            overwrite: true
+#        rules:
+#            # only match login.example.com
+#            -
+#                match:
+#                    host: ^localhost:8000/login$
+#                headers:
+#                    cache_control: { public: false, max_age: 0, s_maxage: 0 }
+#                    etag: "strong"
+#                    vary: [Accept-Encoding, Accept-Language]
+#
+#            # match all actions of a specific controller
+#            -
+#                match:
+#                    attributes: { _controller: ^AcmeBundle:Default:.* }
+#                headers:
+#                    cache_control: { public: true, max_age: 15, s_maxage: 30 }
+#                    last_modified: "-1 hour"
+#
+#            # only match URLs having a specific parameter
+#            -
+#                match:
+#                    query_string: (^|&)token=
+#                headers:
+#                    cache_control: { public: false, max_age: 0, s_maxage: 0 }
+#
+#            -
+#                match:
+#                    path: ^/$
+#                headers:
+#                    cache_control: { public: true, max_age: 340, s_maxage: 340}
+#                    etag: "strong"
+#                    vary: [Accept-Encoding, Accept-Language]
+#
+#            # match everything to set defaults
+#            -
+#                match:
+#                    path: ^/login
+#                headers:
+#                    cache_control: { public: false, max_age: 33 }
+#                    etag: "strong"
+#                    vary: [Accept-Encoding, Accept-Language]     
+#            -
+#                match:
+#                    path: ^/
+#                headers:
+#                    overwrite: false
+#                    cache_control: { public: true, max_age: 15, s_maxage: 67 }
+#                    etag: "strong"
+#        

@@ -1,0 +1,37 @@
+<div class="pb-6">
+	<div class="float-left">
+		<div class="flex flex-row ">
+			<a id='baketid' href="{{ path('app_main') }}" class="pr-2">
+				<div class=" w-24 justify-center bg-cyan-900 text-center text-white p-1 rounded-md hover:bg-cyan-700">
+					Home
+				</div>
+			</a>
+			{{ calculateArea(4,6)|raw }}
+		</div>
+	</div>
+	<div class="float-right">
+		<div class="flex flex-row">
+			{% if not app.user %}
+				<a href="{{ path('app_login') }}" class="pr-2">
+					<div class=" w-24 justify-center bg-cyan-900 text-center text-white p-1 rounded-md hover:bg-cyan-700">
+						Login
+					</div>
+				</a>
+
+				<a href="{{ path('app_register') }}" class="pr-2">
+					<div class=" w-24 justify-center bg-cyan-900 text-center text-white p-1 pl-2 rounded-md hover:bg-cyan-700">
+						Register
+					</div>
+				</a>
+			{% else %}
+				{{ render(controller('App\\Controller\\BasketController::getBasketProductsCount')) }}
+				<a href="{{ path('app_logout') }}" class="pr-2">
+					<div class=" text-gray-700 w-24 justify-center   p-1 pl-2 hover:text-sky-800">
+						Logout
+					</div>
+				</a>
+			{% endif %}
+
+		</div>
+	</div>
+</div>

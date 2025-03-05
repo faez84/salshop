@@ -1,0 +1,44 @@
+{% extends 'base.html.twig' %}
+{% block body %}
+    <div class="">
+        <div class="bg-white">
+            <div class="mx-auto max-w-2xl px-4 py-16 sm:px-6 sm:py-24 lg:max-w-7xl lg:px-8 ">
+                <div class="shadow-2xl border-1 border-[#1d1b1b] p-8">
+
+                    {{ form_start(form) }}
+                    <div class="p-4">
+                        {{ form_label(form.street, 'Street',  {'label_attr': {'class': 'w-[50px]'}}) }}
+                        {{ form_widget(form.street, {'attr': {'class': 'ml-5 shadow-sm border-2 border-[#f3f3f3]'}}) }}
+                    </div>
+                    <div class="p-4">
+                        {{ form_label(form.zip, 'Zip',  {'label_attr': {'class': 'w-[50px]'}}) }}
+                        {{ form_widget(form.zip, {'attr': {'class': 'ml-5 shadow-sm border-2 border-[#f3f3f3]'}}) }}
+                    </div>
+                    <div class="p-4">
+                        {# {{form_label(form.city, 'City'|trans({}, 'messages', 'de'),  {'label_attr': {'class': 'w-[50px]'}})}} #}
+                        {{ form_label(form.city, 'City'|trans,  {'label_attr': {'class': 'w-[50px]'}}) }}
+                        {{ form_widget(form.city, {'attr': {'class': 'ml-5 shadow-sm border-2 border-[#f3f3f3]'}}) }}
+                    </div>
+                    <div class="p-4">
+                        {{ form_label(form.defualt, 'Defualt',  {'label_attr': {'class': 'w-[50px]'}}) }}
+                        {{ form_widget(form.defualt, {'attr': {'class': 'ml-5 shadow-sm border-2 border-[#f3f3f3]'}}) }}
+                    </div>
+                    <div class="flex flex-row">
+
+                        <div class="p-4">
+                            {{ form_widget(form.save, {'attr': {'class': 'bg-indigo-600 flex gap-2 items-center text-white px-6 py-2 rounded-md
+											hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2'}}) }}
+                        </div>
+                        <div class="p-4">
+                            <button onClick="window.history.back();" class="bg-indigo-600 flex gap-2 items-center text-white px-6 py-2 rounded-md
+											hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2">
+                                Cancel
+                            </button>
+                        </div>
+                    </div>
+                    {{ form_end(form) }}
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}

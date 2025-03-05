@@ -1,0 +1,65 @@
+version: '3'
+
+services:
+  nginx:
+    build:
+      context: .
+      dockerfile: ./container/nginx/Dockerfile
+    volumes:
+      - ./app:/app
+    ports:
+      - "8001:80"
+      - "444:443"
+    depends_on:
+      - app
+    networks:
+      - shop_net
+  app:
+    image: faezsal/symfony-shop-app:v1.3.0
+    volumes:
+      - ./app:/app
+    environment:
+      DATABASE_URL: mysql://root:root@db/shopnewnew
+    #command:  y|composer install --working-dir=/var/www/app
+    depends_on:
+      - redis  
+    networks:
+      - shop_net
+  db:
+    image: mysql:8
+    command:
+      --mysql-native-password=ON
+    environment:
+      MYSQL_DATABASE: shopnewnew
+      MYSQL_PASSWORD: root
+      MYSQL_ROOT_PASSWORD: root
+    ports:
+      - "3345:3306"
+    volumes:
+      - ./data/mysql_shop/:/var/lib/mysql:cached
+    networks:
+      - shop_net
+  redis:
+      container_name: container_redis
+      image: redis:latest
+      ports:
+          - "6379:6379"
+      networks:
+        - shop_net
+  varnish:
+    container_name: shop-varnish
+    tty: true
+    depends_on:
+      - nginx
+    build:
+      context: .
+      dockerfile: ./container/varnish/Dockerfile
+    networks:
+      - shop_net
+    ports:
+      - 5003:80
+    command: 'sh start'
+    volumes:
+      - ./container/varnish/varnish.vcl:/etc/varnish/default.vcl
+networks:
+  shop_net:

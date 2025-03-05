@@ -1,0 +1,7 @@
+{% for cat in categories %}
+    <a href="{{ path('category_products', {id: cat.id}) }}" class="pr-2">
+        <div class=" w-24 justify-center bg-cyan-900 text-center text-white p-1 pl-2 rounded-md hover:bg-cyan-700">
+            {{ cat.title }}
+        </div>
+    </a>
+{% endfor %}

@@ -1,0 +1,64 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: symfony-shop-deploy3
+  labels:
+    app: symfony-shop-deploy3
+    type: fe-end
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: symfony-shopapp-new3
+      type: fe-end
+  template:
+    metadata:
+      name: symfony-shopapp-new3
+      labels:
+        app: symfony-shopapp-new3
+        type: fe-end
+    spec:
+
+      containers:
+        - name: symfony-shopapp-new3
+          image: faezsal/symfony-shop-app:v1.4.12
+          volumeMounts:
+            - mountPath: /var/www/html
+              name: my-volume4
+          lifecycle:
+            postStart:
+              exec:
+                command: ["/bin/sh", "-c", "cp -r /app/app/. /var/www/html"] 
+              # ["/bin/sh", "-c", "cp -r /app/. /var/www/html & cd /var/www/html &  sed  -i  's/bbbb@127.0.0.1/bbbb@10.111.32.190/g' .env & rm -rf var/cache/dev"]   
+                # command: ["/bin/sh", "-c", "apt-get update && apt-get install nano"]  
+             # exec:
+              #  command: ["/bin/sh", "-c", "sed  -i  's/bbbb@127.0.0.1/bbbb@10.111.32.190/g' /var/www/html/.env"]  
+              #command: ["/bin/sh", "-c", "y| php bin/console doctrine:migrations:migrate "]  
+              #command: ["/bin/sh", "-c", "y| php bin/console doctrine:fixtures:load"]  
+              #command: ["/bin/sh", "-c", "php bin/console tailwind:build"]  
+                  
+    # Our nginx container, which uses the configuration declared above,
+    # along with the files shared with the PHP-FPM app.
+        - name: nginx
+          image: nginx:alpine
+          volumeMounts:
+            - name: nginx-config-volume3
+              mountPath: /etc/nginx/nginx.conf
+              subPath: nginx.conf
+            - mountPath: /var/www/html/
+              name: my-volume4
+      volumes:
+        # Create the shared files volume to be used in both pods
+        - name: shared-files
+          emptyDir: {}
+        - name: story-volume
+          hostPath:
+            path: /var/www/html
+            type: DirectoryOrCreate
+        - name: my-volume4
+          persistentVolumeClaim:
+            claimName: my-pvc4
+        # Add the ConfigMap we declared above as a volume for the pod
+        - name: nginx-config-volume3
+          configMap:
+            name: nginx-config-draft32           

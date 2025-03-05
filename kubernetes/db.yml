@@ -1,0 +1,21 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: symfony-shop-db
+  labels:
+    app: symfony-shop-db
+spec:
+  containers:
+    - name: symfony-shop-db
+      image: mysql:8.0
+      ports:
+        - containerPort: 3306
+      env:
+        - name: MYSQL_ROOT_PASSWORD
+          value: root
+        - name: MYSQL_DATABASE
+          value: shopnewnew
+        - name: MYSQL_USER
+          value: bbbb
+        - name: MYSQL_PASSWORD
+          value: bbbb

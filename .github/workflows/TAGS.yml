@@ -1,0 +1,17 @@
+# This workflow uses actions that are not certified by GitHub.
+# They are provided by a third-party and are governed by
+# separate terms of service, privacy policy, and support
+# documentation.
+
+name: CL
+
+on:
+  push:
+    tags: [ v* ]
+  workflow_dispatch:
+
+jobs:
+  run-docker:
+    name: Docker
+    uses: ./.github/workflows/_docker.yml
+    secrets: inherit
