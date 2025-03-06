@@ -3,15 +3,15 @@
 # separate terms of service, privacy policy, and support
 # documentation.
 
-# name: CL
+name: CL
 
-# on:
-#   push:
-#     branches: [ "master" ]
-#   workflow_dispatch:
+on:
+  push:
+    branches: [ "main" ]
+  workflow_dispatch:
 
-# jobs:
-#   run-phpqa:
-#     name: phpqa
-#     uses: ./.github/workflows/_phpqa.yml
-#     secrets: inherit
+jobs:
+  run-phpqa:
+    name: phpqa
+    uses: ./.github/workflows/_phpqa.yml
+    secrets: inherit
