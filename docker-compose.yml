@@ -8,21 +8,23 @@ services:
     volumes:
       - ./app:/app
     ports:
-      - "8001:80"
+      - "8000:80"
       - "444:443"
     depends_on:
       - app
     networks:
       - shop_net
   app:
-    image: faezsal/symfony-shop-app:v1.3.0
+    build:
+      context: .
+      dockerfile: ./container/symfony/Dockerfile
     volumes:
       - ./app:/app
     environment:
       DATABASE_URL: mysql://root:root@db/shopnewnew
     #command:  y|composer install --working-dir=/var/www/app
     depends_on:
-      - redis  
+      - redis
     networks:
       - shop_net
   db:
@@ -40,12 +42,12 @@ services:
     networks:
       - shop_net
   redis:
-      container_name: container_redis
-      image: redis:latest
-      ports:
-          - "6379:6379"
-      networks:
-        - shop_net
+    container_name: container_redis
+    image: redis:latest
+    ports:
+      - "6379:6379"
+    networks:
+      - shop_net
   varnish:
     container_name: shop-varnish
     tty: true

@@ -41,7 +41,6 @@ class Address
     #[Groups(["user:address:read", "user:address:write"])]
     #[ORM\Column(length: 100)]
     private ?string $city = null;
-    
     #[Assert\NotBlank()]
     #[Groups(["user:address:read", "user:address:write"])]
     #[ORM\Column(length: 15)]

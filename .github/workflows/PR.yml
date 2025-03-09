@@ -3,22 +3,22 @@
 # separate terms of service, privacy policy, and support
 # documentation.
 
-# name: CL
+name: CL
 
-# on:
-#   pull_request:
-#     branches: [ "master" ]
-#   workflow_dispatch:
+on:
+  pull_request:
+    branches: [ "main" ]
+  workflow_dispatch:
 
-# jobs:
-#   run-phpqa:
-#     name: phpqa
-#     uses: ./.github/workflows/_phpqa.yml
-#     secrets: inherit
-#   run-tests:
-#     needs: [ run-phpqa]
-#     name: Test
-#     uses: ./.github/workflows/_test.yml
-#     secrets: inherit
+jobs:
+  run-phpqa:
+    name: phpqa
+    uses: ./.github/workflows/_phpqa.yml
+    secrets: inherit
+  run-tests:
+    needs: [ run-phpqa]
+    name: Test
+    uses: ./.github/workflows/_test.yml
+    secrets: inherit
 
 

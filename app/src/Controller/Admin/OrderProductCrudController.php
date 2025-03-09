@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace App\Controller\Admin;
 
 use App\Entity\OrderProduct;
-use EasyCorp\Bundle\EasyAdminBundle\Attribute\AdminCrud;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Filters;
 use EasyCorp\Bundle\EasyAdminBundle\Controller\AbstractCrudController;
 use EasyCorp\Bundle\EasyAdminBundle\Field\MoneyField;
@@ -42,7 +41,7 @@ class OrderProductCrudController extends AbstractCrudController
 
             // most of the times there is no need to define the
             // filter type because EasyAdmin can guess it automatically
-           
+
         ;
     }
     /*

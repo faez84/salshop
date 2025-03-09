@@ -34,14 +34,14 @@ class OrderRepository extends ServiceEntityRepository
     //        ;
     //    }
 
-       public function findOrderInLastThreeMonths(): array
-       {
-           return $this->createQueryBuilder('o')
-                ->select("count(o.id) as orderCount, DATE_FORMAT(o.createdAt, '%Y-%m-%d') as dateAsDay")
-               ->andWhere('o.createdAt > :createdAt')
-               ->groupBy('dateAsDay')
-               ->setParameter('createdAt', new \DateTime('-90 days'))
-               ->getQuery()
-               ->getArrayResult();
-       }
+    public function findOrderInLastThreeMonths(): array
+    {
+        return $this->createQueryBuilder('o')
+           ->select("count(o.id) as orderCount, DATE_FORMAT(o.createdAt, '%Y-%m-%d') as dateAsDay")
+           ->andWhere('o.createdAt > :createdAt')
+           ->groupBy('dateAsDay')
+           ->setParameter('createdAt', new \DateTime('-90 days'))
+           ->getQuery()
+           ->getArrayResult();
+    }
 }
