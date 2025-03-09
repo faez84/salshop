@@ -9,6 +9,7 @@ use App\Entity\Order;
 use App\Entity\OrderProduct;
 use App\Entity\Product;
 use App\Entity\User;
+use App\Repository\OrderRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use EasyCorp\Bundle\EasyAdminBundle\Attribute\AdminDashboard;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Asset;
@@ -18,9 +19,9 @@ use EasyCorp\Bundle\EasyAdminBundle\Config\MenuItem;
 use EasyCorp\Bundle\EasyAdminBundle\Controller\AbstractDashboardController;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
-use EasyCorp\Bundle\EasyAdminBundle\Config\Crud;
 use Symfony\UX\Chartjs\Builder\ChartBuilderInterface;
 use Symfony\UX\Chartjs\Model\Chart;
+
 /**
  * This will suppress all the PMD warnings in
  * this class.
@@ -43,8 +44,9 @@ class DashboardController extends AbstractDashboardController
     public function index(): Response
     {
         $chart = $this->chartBuilder->createChart(Chart::TYPE_BAR);
-        $order = new Order();
-        $result = $this->em->getRepository(Order::class)->findOrderInLastThreeMonths();
+        /** @var OrderRepository $orderRepository */
+        $orderRepository = $this->em->getRepository(Order::class);
+        $result = $orderRepository->findOrderInLastThreeMonths();
 
         $chart->setData([
             'labels' => array_column($result, "dateAsDay"),
@@ -95,11 +97,10 @@ class DashboardController extends AbstractDashboardController
         yield MenuItem::linkToCrud('Orders', 'fas fa-list', Order::class);
         yield MenuItem::linkToCrud('Orders Products', 'fas fa-list', OrderProduct::class);
         yield MenuItem::linkToCrud('Users', 'fas fa-list', User::class);
-
     }
     public function configureAssets(): Assets
     {
-       return parent::configureAssets()
-          ->addAssetMapperEntry(Asset::new('app')->preload());
+        return parent::configureAssets()
+            ->addAssetMapperEntry(Asset::new('app')->preload());
     }
 }
