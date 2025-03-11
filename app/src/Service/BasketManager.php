@@ -21,6 +21,9 @@ class BasketManager
         $this->session = $requestStack->getSession();
     }
 
+    /**
+     * @return array<mixed>|null
+     */
     public function getBasket(): ?array
     {
         return $this->session->get('basket');
@@ -40,6 +43,12 @@ class BasketManager
         $this->setBasketToSession($productId, $price, $basket);
     }
 
+    /**
+     * @param array<mixed> $basket
+     * @param int $productId
+     * @param float $price
+     * @return array<mixed>
+     */
     public function updateBasket(array $basket, int $productId, float $price): array
     {
         if (!isset($basket['products'][$productId])) {
@@ -51,7 +60,9 @@ class BasketManager
             return $basket;
         }
 
-        $basket['products'][$productId]['amount']++;
+        if (array_key_exists('amount', $basket['products'][$productId])) {
+            $basket['products'][$productId]['amount']++;
+        }
 
         return $basket;
     }
@@ -59,7 +70,7 @@ class BasketManager
     /**
      * @param int $productId
      * @param float $price
-     * @param array $basket
+     * @param array<mixed> $basket
      * @return void
      * @throws \App\Exceptions\OutOfStockException
      */
@@ -120,13 +131,19 @@ class BasketManager
         return 0;
     }
 
-    public function getBasketProducts()
+    /**
+     * @return array<mixed>
+     */
+    public function getBasketProducts(): array
     {
         $basket = $this->session->get('basket');
 
         return $basket ?? [];
     }
 
+    /**
+     * @return array<object>
+     */
     public function getBasketProductsList(): array
     {
         $products = [];

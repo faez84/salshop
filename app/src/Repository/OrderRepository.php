@@ -34,6 +34,11 @@ class OrderRepository extends ServiceEntityRepository
     //        ;
     //    }
 
+    /**
+     * Finds the number of orders created in the last three months grouped by day.
+     *
+     * @return array<int, object> Array containing order count and creation date per day
+     */
     public function findOrderInLastThreeMonths(): array
     {
         return $this->createQueryBuilder('o')

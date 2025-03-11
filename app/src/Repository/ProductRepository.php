@@ -20,7 +20,8 @@ class ProductRepository extends ServiceEntityRepository
 
 
     /**
-     * @return array
+     * @param array<string> $ids
+     * @return array<object>
      */
     public function findInValues(array $ids): array
     {

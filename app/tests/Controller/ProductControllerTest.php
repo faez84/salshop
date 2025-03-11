@@ -13,13 +13,11 @@ use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
 class ProductControllerTest extends WebTestCase
 {
     private KernelBrowser $client;
-    private UserRepository $userRepository;
     public function setUp(): void
     {
         $this->client = static::createClient();
         $container = static::getContainer();
         $em = $container->get('doctrine.orm.entity_manager');
-        $this->userRepository = $em->getRepository(User::class);
         UserFactory::createOne(['email' => 'test2@test.com', 'password' => '1Qq!1111', 'roles' => ['ROLE_USER']]);
 
         parent::setUp();

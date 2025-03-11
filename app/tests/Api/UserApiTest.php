@@ -55,13 +55,13 @@ class UserApiTest extends Api
         $this->assertJsonContains(['detail' => 'password: This value is not valid.']);
     }
 
-    public function testGetUsers()
+    public function testGetUsers(): void
     {
         $response = $this->get("/api/users");
         $this->assertResponseIsSuccessful();
         $this->assertResponseStatusCodeSame(200);
     }
-    public function testGetUser()
+    public function testGetUser(): void
     {
         UserFactory::createOne(["email" => "test@test.com", "password" => "1Qq!1111"]);
         $response = $this->get("/api/users/1");
@@ -70,7 +70,7 @@ class UserApiTest extends Api
         $this->assertJsonContains(['@id' => '/api/users/1']);
     }
 
-    public function testGetNotFoundUser()
+    public function testGetNotFoundUser(): void
     {
        // UserFactory::createOne(["email" => "test@test.com", "password" => "1Qq!1111"]);
         

@@ -3,6 +3,8 @@
 namespace App\Tests\Api;
 
 use ApiPlatform\Symfony\Bundle\Test\ApiTestCase;
+use ApiPlatform\Symfony\Bundle\Test\Client;
+use ApiPlatform\Symfony\Bundle\Test\Response;
 use App\Factory\UserFactory;
 use Doctrine\ORM\EntityManager;
 use Zenstruck\Foundry\Test\Factories;
@@ -15,7 +17,7 @@ class Api extends ApiTestCase
     
     protected static ?string $admintToken = null;
     
-    public $client;
+    public Client $client;
     protected EntityManager $em;
 
     public function setUp(): void 
@@ -26,34 +28,29 @@ class Api extends ApiTestCase
         $this->em = static::getContainer()->get('doctrine.orm.entity_manager');
     }
     
-    public function getToken()
+    public function getToken(): void
     {
+        UserFactory::createOne(["email" => "admin@admin.com", "password" => "1Qq!1111"]);
 
-            UserFactory::createOne(["email" => "admin@admin.com", "password" => "1Qq!1111"]);
-            $user = UserFactory::findBy(["email" => "admin@admin.com"]);
- 
-
-            $response = static::createClient()->request('POST', '/api/login_check', [
-            'json' => [
-                        'username' => 'admin@admin.com',
-                        'password' => '1Qq!1111'
-                    ],
-            ]);
-            static::$token = json_decode($response->getContent(), true)['token'];
+        $response = static::createClient()->request('POST', '/api/login_check', [
+        'json' => [
+                    'username' => 'admin@admin.com',
+                    'password' => '1Qq!1111'
+                ],
+        ]);
+        static::$token = json_decode($response->getContent(), true)['token'];
     }
 
-    public function getAdminToken()
+    public function getAdminToken(): void
     {
-
-            UserFactory::createOne(["email" => "adminuser@admin.com", "password" => "1Qq!1111", "Roles" => ["ROLE_ADMIN"]]);
-            $response = static::createClient()->request('POST', '/api/login_check', [
-            'json' => [
-                        'username' => 'adminuser@admin.com',
-                        'password' => '1Qq!1111'
-                    ],
-            ]);
-            static::$admintToken = json_decode($response->getContent(), true)['token'];
-        
+        UserFactory::createOne(["email" => "adminuser@admin.com", "password" => "1Qq!1111", "Roles" => ["ROLE_ADMIN"]]);
+        $response = static::createClient()->request('POST', '/api/login_check', [
+        'json' => [
+                    'username' => 'adminuser@admin.com',
+                    'password' => '1Qq!1111'
+                ],
+        ]);
+        static::$admintToken = json_decode($response->getContent(), true)['token'];
     }
 
     public function getRefreshToken(): string
@@ -64,15 +61,13 @@ class Api extends ApiTestCase
                     'username' => 'admin2@admin.com',
                     'password' => '1Qq!1111'
                 ],
-        ]); 
-
+        ]);
 
         return (string) json_decode($response->getContent(), true)['refresh_token'];
     }
 
-    public function get(string $url)
+    public function get(string $url): Response
     {
-      
          $this->client->request("GET", $url, [
             'headers' => [
                 'Content-Type' => 'application/json',
@@ -84,7 +79,13 @@ class Api extends ApiTestCase
         return $this->client->getResponse();
     }
 
-    public function post(string $url, array $data)
+    /**
+     * @param string $url
+     * @param array<string, string> $data
+     * @return Response
+     * @throws \Symfony\Contracts\HttpClient\Exception\TransportExceptionInterface
+     */
+    public function post(string $url, array $data): Response
     {
         $client = static::createClient();
         $response = $client->request("POST", $url, [
@@ -98,7 +99,13 @@ class Api extends ApiTestCase
         return $client->getResponse();
     }
 
-    public function postAdmin(string $url, array $data)
+    /**
+     * @param string $url
+     * @param array<string, string|null> $data
+     * @return Response
+     * @throws \Symfony\Contracts\HttpClient\Exception\TransportExceptionInterface
+     */
+    public function postAdmin(string $url, array $data): Response
     {
         $client = static::createClient();
         $response = $client->request("POST", $url, [
@@ -112,7 +119,7 @@ class Api extends ApiTestCase
         return $client->getResponse();
     }
 
-    public function delete(string $url)
+    public function delete(string $url): Response
     {
         $client = static::createClient();
         $response = $client->request("DELETE", $url, [
@@ -125,7 +132,7 @@ class Api extends ApiTestCase
         return $client->getResponse();
     }
 
-    public function deleteAdmin(string $url)
+    public function deleteAdmin(string $url): Response
     {
         $client = static::createClient();
         $response = $client->request("DELETE", $url, [
@@ -137,8 +144,14 @@ class Api extends ApiTestCase
       
         return $client->getResponse();
     }
-    
-    public function putAdmin(string $url, array $data)
+
+    /**
+     * @param string $url
+     * @param array<string, string> $data
+     * @return Response
+     * @throws \Symfony\Contracts\HttpClient\Exception\TransportExceptionInterface
+     */
+    public function putAdmin(string $url, array $data): Response
     {
         $client = static::createClient();
         $response = $client->request("PUT", $url, [
@@ -152,7 +165,13 @@ class Api extends ApiTestCase
         return $client->getResponse();
     }
 
-    public function patchAdmin(string $url, array $data)
+    /**
+     * @param string $url
+     * @param array<string, string> $data
+     * @return Response
+     * @throws \Symfony\Contracts\HttpClient\Exception\TransportExceptionInterface
+     */
+    public function patchAdmin(string $url, array $data): Response
     {
         $client = static::createClient();
         $response = $client->request("PATCH", $url, [

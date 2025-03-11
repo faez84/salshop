@@ -6,5 +6,5 @@ namespace App\Service\Order;
 
 interface ISaver
 {
-    public function save();
+    public function save(): void;
 }

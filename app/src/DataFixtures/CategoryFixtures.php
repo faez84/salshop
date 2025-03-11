@@ -24,7 +24,7 @@ class CategoryFixtures extends Fixture
     }
 
     /**
-     * @return array<array>
+     * @return array<int, array<int, string|null>>
      */
     private function getCategoriesData(): array
     {
