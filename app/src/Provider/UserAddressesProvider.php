@@ -20,20 +20,19 @@ use Doctrine\Common\Collections\Collection;
  */
 class UserAddressesProvider implements ProviderInterface
 {
+    /**
+     * @param Security $security
+     */
     public function __construct(
-        #[Autowire(service: 'api_platform.doctrine.orm.state.persist_processor')]
-        private ProcessorInterface $internalProcess,
-        private UserPasswordHasherInterface $userPasswordHasherInterface,
         private Security $security
     ) {
     }
 
     /**
-     * Summary of provide
-     * @param \ApiPlatform\Metadata\Operation $operation
-     * @param array $uriVariables
-     * @param array $context
-     * @return \Doctrine\Common\Collections\Collection<int, \App\Entity\Address>
+     * @param Operation $operation
+     * @param array<string, mixed> $uriVariables
+     * * @param array<string, mixed>|array{request?: Request, resource_class?: string} $context
+     * @return object|array|object[]|null
      */
     public function provide(Operation $operation, array $uriVariables = [], array $context = []): object|array|null
     {

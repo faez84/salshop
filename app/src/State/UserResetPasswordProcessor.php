@@ -12,8 +12,18 @@ use Symfony\Component\DependencyInjection\Attribute\Autowire;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 use Symfony\Component\Validator\Exception\ValidatorException;
 
+/**
+ *
+ * @template-implements ProcessorInterface<mixed, mixed>
+ *
+ */
 readonly class UserResetPasswordProcessor implements ProcessorInterface
 {
+    /**
+     * @param ProcessorInterface<mixed, mixed> $internalProcess
+     * @param UserPasswordHasherInterface $userPasswordHasherInterface
+     * @param Security $security
+     */
     public function __construct(
         #[Autowire(service: 'api_platform.doctrine.orm.state.persist_processor')]
         private ProcessorInterface $internalProcess,

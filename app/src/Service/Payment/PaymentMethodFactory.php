@@ -10,7 +10,8 @@ class PaymentMethodFactory
     {
         return match ($paymentMethod) {
             'CreditCard' => new CreditcardPayment(),
-            'Paypal' => new CreditcardPayment()
+            'Paypal' => new PaypalPayment(),
+            default => new CreditcardPayment(),
         };
     }
 }

@@ -18,7 +18,7 @@ class OrderArticleSaver
 
     /**
      * @param Order $order The order object to associate the products with
-     * @param array $productIds An array containing the product IDs and corresponding data
+     * @param array<array<string>> $productIds An array containing the product IDs and corresponding data
      * @return void
      * @throws Exception If a product is out of stock
      */

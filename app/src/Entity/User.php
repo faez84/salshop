@@ -93,10 +93,10 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     )]
     private ?string $repeatPassword = null;
 
-    #[Groups(['user:address:read'])]
     /**
      * @var Collection<int, Address>
      */
+    #[Groups(['user:address:read'])]
     #[ORM\OneToMany(targetEntity: Address::class, mappedBy: 'user', orphanRemoval: true)]
     private Collection $addresses;
 

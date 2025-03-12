@@ -10,13 +10,11 @@ use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
 class RegisterControllerTest extends WebTestCase
 {
     private KernelBrowser $client;
-    private UserRepository $userRepository;
     public function setUp(): void
     {
         $this->client = static::createClient();
         $container = static::getContainer();
         $em = $container->get('doctrine.orm.entity_manager');
-        $this->userRepository = $em->getRepository(User::class);
     }
 
     public function testRegister(): void

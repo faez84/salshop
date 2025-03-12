@@ -42,10 +42,10 @@ class Order implements \Stringable
     #[ORM\Column]
     private ?DateTimeImmutable $createdAt = null;
 
-    #[Groups(["order:read", "order:write"])]
     /**
      * @var Collection<int, OrderProduct>
      */
+    #[Groups(["order:read", "order:write"])]
     #[ORM\OneToMany(targetEntity: OrderProduct::class, mappedBy: 'oorder', cascade:["persist"], orphanRemoval: true)]
     private Collection $orderProducts;
 
