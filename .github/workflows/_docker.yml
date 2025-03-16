@@ -68,9 +68,7 @@ jobs:
         sed  -i  's/%%JWTPASSPHRASE%%/${{ secrets.JWTPASSPHRASE }}/g' .env.local.dist.php
         sed  -i  's/%%MERCUREJWTSECRET%%/${{ secrets.MERCUREJWTSECRET }}/g' .env.local.dist.php
     - name: Replace env file
-      run: |
-        rm .env
-        mv .env.local.dist.php .env.local.php 
+      run: mv .env.local.dist.php .env.local.php 
     - name: Cat .env.local.php
       run: cat .env.local.php
     - name: Cache Composer packages
