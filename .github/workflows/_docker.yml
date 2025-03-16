@@ -93,12 +93,13 @@ jobs:
         DB_USER: root
         DB_PASSWORD: root
         DATABASE_URL: mysql://root:root@127.0.0.1:3306/shopnewnew
-      run: composer install --no-dev --optimize-autoloader
+      run: |
+        composer install --no-dev --optimize-autoloader
+        APP_ENV=prod APP_DEBUG=0 php bin/console cache:clear
+  
     - name: generate jwt pair keys
       run: php bin/console lexik:jwt:generate-keypair
 
-    - name: remove cache
-      run: APP_ENV=prod APP_DEBUG=0 php bin/console cache:clear
     - name: login to docker registry
       uses: docker/login-action@v3
       with:
