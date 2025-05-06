@@ -1,3 +1,6 @@
+parameters:
+    # ...
+    env(ELASTICSEARCH_HOST): 'http://elasticsearch:9200'
 api_platform:
     title: Hello API Platform
     version: 1.0.0
@@ -17,4 +20,6 @@ api_platform:
         pagination_items_per_page: 10
     keep_legacy_inflector: false
     use_symfony_listeners: true
- 
+
+    elasticsearch:
+        hosts: ['%env(ELASTICSEARCH_HOST)%']

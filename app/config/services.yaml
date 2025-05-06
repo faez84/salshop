@@ -32,7 +32,16 @@ services:
         class: App\Entity\Order
         autowire: true
         public: true
-    # add more service definitions when explicit configuration is needed
+    App\MessageHandler\:
+        resource: '../src/MessageHandler'
+        tags: ['messenger.message_handler']
+    # product.order_filter:
+    #     parent: 'api_platform.doctrine.orm.order_filter'
+    #     arguments:
+    #         $properties: { price: ~ }
+    #         $orderParameterName: order
+    #     tags: ['api_platform.filter']
+                # add more service definitions when explicit configuration is needed
     # please note that last definitions always *replace* previous ones
 #fos_http_cache:
 #    cache_control:

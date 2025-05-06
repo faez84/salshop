@@ -2,7 +2,7 @@
 apiVersion: v1
 kind: PersistentVolume
 metadata:
-  name: my-pv4
+  name: sal-pv
 spec:
   capacity:
     storage: 1Gi
@@ -14,7 +14,7 @@ spec:
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
-  name: my-pvc4
+  name: sal-pvc
 spec:
   accessModes:
     - ReadWriteOnce

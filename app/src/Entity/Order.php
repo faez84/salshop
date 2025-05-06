@@ -5,12 +5,16 @@ declare(strict_types=1);
 namespace App\Entity;
 
 use ApiPlatform\Metadata\ApiResource;
+use App\Controller\OrderTransactionController;
 use App\Repository\OrderRepository;
+use App\Service\Generator\IdGenerator;
+use App\State\CreateOrderProcessor;
 use DateTimeImmutable;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Serializer\Attribute\Groups;
+use ApiPlatform\Metadata\Post;
 
 #[ORM\Entity(repositoryClass: OrderRepository::class)]
 #[ORM\Table(name: '`order`')]
@@ -18,6 +22,20 @@ use Symfony\Component\Serializer\Attribute\Groups;
     normalizationContext: ['groups' => ['order:read']],
     denormalizationContext: ['groups' => ['order:write']]
 )]
+#[ApiResource(operations:[
+    new Post(
+        processor: CreateOrderProcessor::class,
+        uriTemplate: '/ordersn',
+        denormalizationContext: ['groups' => ['order:write']],
+    ),
+])]
+#[ApiResource(operations:[
+    new Post(
+        controller: OrderTransactionController::class,
+        uriTemplate: '/orderstrans',
+        denormalizationContext: ['groups' => ['order:write']],
+    ),
+])]
 #[ORM\HasLifecycleCallbacks]
 class Order implements \Stringable
 {
@@ -53,6 +71,10 @@ class Order implements \Stringable
     #[ORM\ManyToOne(inversedBy: 'orders')]
     #[ORM\JoinColumn(nullable: false)]
     private ?Address $address = null;
+
+    #[Groups(["order:read"])]
+    #[ORM\Column(length: 8)]
+    private ?string $orderNr = null;
 
     public function __construct()
     {
@@ -158,5 +180,17 @@ class Order implements \Stringable
     public function __toString(): string
     {
         return (string) $this->getId();
+    }
+
+    public function getOrderNr(): ?string
+    {
+        return $this->orderNr;
+    }
+
+    public function setOrderNr(string $orderNr): static
+    {
+        $this->orderNr = $orderNr;
+
+        return $this;
     }
 }

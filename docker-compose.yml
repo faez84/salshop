@@ -18,6 +18,7 @@ services:
     build:
       context: .
       dockerfile: ./container/symfony/Dockerfile
+    #image: faezsal/sal-shop-app:v0.0.4
     volumes:
       - ./app:/app
     environment:
@@ -63,5 +64,51 @@ services:
     command: 'sh start'
     volumes:
       - ./container/varnish/varnish.vcl:/etc/varnish/default.vcl
+  # elasticsearch:
+  #   image: elasticsearch:7.8.1
+  #   ports:
+  #     - 9200:9200
+  #   environment:
+  #     discovery.type: 'single-node'
+  #     xpack.security.enabled: false
+  #     ELASTIC_PASSWORD: '111111'
+  #     ES_JAVA_OPTS: '-Xmx2g -Xms2g'
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:7.17.13
+    container_name: elasticsearch
+    environment:
+    - discovery.type=single-node
+    - xpack.security.enabled=false
+    - bootstrap.memory_lock=true
+    - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+    ports:
+      - "9200:9200"
+    networks:
+      - shop_net
+  kibana:
+    image: kibana:7.8.1
+    volumes:
+      - ./kibana.yml:/usr/share/kibana/config/kibana.yml
+    ports:
+      - 5601:5601
+    networks:
+      - shop_net
+  rabbitmq:
+    image: rabbitmq:3-management
+    container_name: rabbitmq
+    ports:
+      - 5673:5672
+      - 15673:15672
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
+    networks:
+      - shop_net
+volumes:
+  rabbitmq_data:
+
 networks:
   shop_net:

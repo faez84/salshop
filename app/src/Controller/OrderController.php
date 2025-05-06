@@ -4,23 +4,17 @@ declare(strict_types=1);
 
 namespace App\Controller;
 
-use App\Entity\Category;
-use App\Form\PaymentFormType;
-use App\Repository\CategoryRepository;
-use App\Repository\ProductRepository;
-use App\Service\BasketManager;
-use App\Service\Order\OrderCheckout;
-use App\Service\Payment\PaymentMethodFactory;
-use App\Service\Payment\PaymentMethodValidator;
+use App\Message\Command\OrderFinalize;
+
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
-use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\Messenger\MessageBusInterface;
 use Symfony\Component\Routing\Attribute\Route;
-use Symfony\Component\Security\Http\Authentication\AuthenticationUtils;
+use SymfonyBundles\RedisBundle\Redis\ClientInterface;
 
 class OrderController extends AbstractController
 {
-    public function __construct()
+    public function __construct( private MessageBusInterface $messageBus)
     {
     }
 
@@ -30,6 +24,16 @@ class OrderController extends AbstractController
 
         return $this->render('order/show.html.twig', [
             'msg' => "Thank you for your order!",
+        ]);
+    }
+
+    #[Route(path: '/message/order', name: "order_execute")]
+    public function orderMessage(): Response
+    {
+        $this->messageBus->dispatch(new OrderFinalize('1', "paypal"));
+        //$this->messageBus->dispatch(new SearchQuery('search'));
+        return $this->render('index.html.twig', [
+            'mesg' => "Thank you for your order!",
         ]);
     }
 }

@@ -1,30 +1,30 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: symfony-shop-deploy3
+  name: sal-shop-deploy
   labels:
-    app: symfony-shop-deploy3
+    app: sal-shop-deploy
     type: fe-end
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: symfony-shopapp-new3
+      app: sal-shopapp-new
       type: fe-end
   template:
     metadata:
-      name: symfony-shopapp-new3
+      name: sal-shopapp-new
       labels:
-        app: symfony-shopapp-new3
+        app: sal-shopapp-new
         type: fe-end
     spec:
 
       containers:
-        - name: symfony-shopapp-new3
-          image: faezsal/symfony-shop-app:v1.4.12
+        - name: sal-shopapp-new
+          image: faezsal/sal-shop-app:v0.0.4
           volumeMounts:
             - mountPath: /var/www/html
-              name: my-volume4
+              name: sal-volume
           lifecycle:
             postStart:
               exec:
@@ -46,7 +46,7 @@ spec:
               mountPath: /etc/nginx/nginx.conf
               subPath: nginx.conf
             - mountPath: /var/www/html/
-              name: my-volume4
+              name: sal-volume
       volumes:
         # Create the shared files volume to be used in both pods
         - name: shared-files
@@ -55,10 +55,10 @@ spec:
           hostPath:
             path: /var/www/html
             type: DirectoryOrCreate
-        - name: my-volume4
+        - name: sal-volume
           persistentVolumeClaim:
-            claimName: my-pvc4
+            claimName: sal-pvc
         # Add the ConfigMap we declared above as a volume for the pod
         - name: nginx-config-volume3
           configMap:
-            name: nginx-config-draft32           
+            name: nginx-config-draft5

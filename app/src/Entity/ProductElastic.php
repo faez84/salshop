@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Entity;
 
+use ApiPlatform\Elasticsearch\Filter\MatchFilter;
 use ApiPlatform\Elasticsearch\State\CollectionProvider;
 use ApiPlatform\Elasticsearch\State\ItemProvider;
 use ApiPlatform\Elasticsearch\State\Options;
@@ -17,6 +18,7 @@ use ApiPlatform\Metadata\Patch;
 use ApiPlatform\Metadata\Post;
 use ApiPlatform\Metadata\Put;
 use App\Repository\ProductRepository;
+use App\Service\Search\ElasticsearchProductProvider;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
@@ -27,94 +29,75 @@ use ApiPlatform\Metadata\Link;
 use ApiPlatform\Doctrine\Orm\Filter\SearchFilter;
 use ApiPlatform\Metadata\QueryParameter;
 
-#[ORM\Entity(repositoryClass: ProductRepository::class)]
+
 #[ApiResource(
     operations: [
+      //  new Get(uriTemplate: 'productselastic', provider: ItemProvider::class, stateOptions: new Options(index: 'productselastic')),
         new GetCollection(
-            uriTemplate: '/categories/{id}/products',
-            uriVariables: [
-                'id' => new Link(fromClass: Category::class, toProperty: 'category'),
-            ],
-            paginationItemsPerPage: 10,
+            uriTemplate: 'productselastic',
+            provider: ElasticsearchProductProvider::class, stateOptions: new Options(index: 'productselastic'),
+            paginationItemsPerPage: 20,
             paginationEnabled:true,
-        ),
-    ]
-)]
-#[ApiResource(
-    operations: [
-        new Get(
-         //   provider: ItemProvider::class, stateOptions: new Options(index: 'product')
-        ),
-        new GetCollection(
-          //  uriTemplate: 'products',
-          //  provider: CollectionProvider::class, stateOptions: new Options(index: 'product'),
            // parameters: [
             //'order[:property]' => new QueryParameter(filter: 'product.order_filter'),
             //'fooAlias' => new QueryParameter(filter: 'app_search_filter_via_parameter', property: 'artNum'),
        // ]
     ),
-        new Post(security: "is_granted('ROLE_ADMIN')"),
-        new Put(security: "is_granted('ROLE_ADMIN')"),
-        new Patch(security: "is_granted('ROLE_ADMIN')"),
-        new Delete(security: "is_granted('ROLE_ADMIN')")
+    new Post(security: "is_granted('ROLE_ADMIN')"),
+    new Put(security: "is_granted('ROLE_ADMIN')"),
+    new Patch(security: "is_granted('ROLE_ADMIN')"),
+    new Delete(security: "is_granted('ROLE_ADMIN')")
     ],
-    normalizationContext: ['groups' => ['product:read']],
-    denormalizationContext: ['groups' => ['product:write']]
+    normalizationContext: ['groups' => ['productselastic:read']],
 )]
-// #[QueryParameter(key: ':property', filter: SearchFilter::class)]
-class Product
+
+#[ApiFilter(SearchFilter::class, properties: [
+    'title' => 'partial',
+    'artNum' => 'exact',
+    'price' => 'exact',
+    'quantity' => 'exact',
+    'category' => 'partial',
+])]
+
+class ProductElastic
 {
-    #[Groups(["product:read"])]
-    #[ORM\Id]
-    #[ORM\GeneratedValue]
-    #[ORM\Column]
-    private ?int $id = null;
+    #[ApiProperty(identifier: true)]
+    #[Groups(['productselastic:read'])]
+    public ?int $id = null;
 
    // #[ApiFilter(SearchFilter::class, strategy: 'partial')]
     #[Assert\NotBlank()]
-    #[Groups(["product:read", "product:write", "category:product:read"])]
-    #[ORM\Column(length: 255)]
+    #[Groups(['productselastic:read'])]
     private ?string $title = null;
 
-    #[Groups(["product:read", "product:write", "category:product:read"])]
-    #[ORM\Column]
+    #[Groups(["productselastic:read", "productselastic:write", "category:product:read"])]
     private ?float $price = null;
 
-    #[Groups(["product:read", "product:write", "category:product:read"])]
-    #[ORM\Column]
+    #[Groups(["productselastic:read", "productselastic:write", "category:product:read"])]
     private ?int $quantity = null;
-
-    #[Groups(["product:read", "product:write", "category:product:read"])]
-    #[ORM\Column(length: 255, nullable: true)]
+    #[Groups(['productselastic:read'])]
     private ?string $description = null;
 
-    #[Groups(["product:read", "product:write", "category:product:read"])]
-    #[ORM\Column(length: 255, nullable: true)]
+    #[Groups(["productselastic:read", "productselastic:write", "category:product:read"])]
     private ?string $image = null;
-    #[Groups(["product:read", "product:write"])]
+
+    #[Groups(["productselastic:read", "productselastic:write"])]
+    private ?string $artNum = null;
+
+    #[Groups(["productselastic:read", "productselastic:write"])]
+    private ?string $features = null;
+
+    #[Groups(["productselastic:read", "productselastic:write"])]
     #[ORM\ManyToOne(inversedBy: 'products', cascade: ['remove'])]
     #[ORM\JoinColumn(nullable: false)]
     private ?Category $category = null;
-
-    #[Groups(["product:read", "product:write"])]
-    #[ORM\Column(length: 255)]
-    private ?string $artNum = null;
-
-    #[Groups(["product:read", "product:write"])]
-    #[ORM\Column(type: Types::TEXT, nullable: true)]
-    private ?string $features = null;
-
-    /**
-     * @var Collection<int, OrderProduct>
-     */
-    #[ORM\OneToMany(targetEntity: OrderProduct::class, mappedBy: 'pproduct', orphanRemoval: true)]
-    private Collection $orderProducts;
 
     public function __construct()
     {
         $this->orderProducts = new ArrayCollection();
     }
 
+    #[Groups(['productselastic:read'])]
     public function getId(): ?int
     {
         return $this->id;

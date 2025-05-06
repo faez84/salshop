@@ -1,9 +1,9 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: service-symfony-shopapp-new3
+  name: service-sal-shopapp-new
   labels:
-    app: symfony-shopapp-new3
+    app: sal-shopapp-new
 spec:
   ports:
     - protocol: TCP
@@ -11,5 +11,5 @@ spec:
       targetPort: 80
 
   selector:
-    app: symfony-shopapp-new3
+    app: sal-shopapp-new
     type: fe-end

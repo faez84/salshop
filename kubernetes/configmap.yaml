@@ -1,7 +1,7 @@
 kind: ConfigMap
 apiVersion: v1
 metadata:
-  name: nginx-config-draft32
+  name: nginx-config-draft5
 data:
   nginx.conf: |
     events {} 
@@ -26,9 +26,13 @@ data:
                 deny all;
         }
 
+        location /\.css {
+          default_type text/css;
+        } 
+
         location / {
             try_files $uri $uri/ /index.php?$args;
-            autoindex on;
+            include /etc/nginx/mime.types;
         }
         
         location ~ \.php$ {
