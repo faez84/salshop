@@ -1,5 +1,8 @@
 {
     "require": {
         "php-amqplib/php-amqplib": "^2.8"
+    },
+    "require-dev": {
+        "symfony/maker-bundle": "^1.63"
     }
 }

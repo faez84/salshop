@@ -32,6 +32,10 @@ services:
         class: App\Entity\Order
         autowire: true
         public: true
+    App\Service\Search\ElasticsearchPaginator:
+        class: App\Service\Search\ElasticsearchPaginator
+        autowire: true
+        public: true
     App\MessageHandler\:
         resource: '../src/MessageHandler'
         tags: ['messenger.message_handler']

@@ -6,12 +6,12 @@ use ApiPlatform\State\Pagination\PaginatorInterface;
 
 class ElasticsearchPaginator implements \IteratorAggregate, PaginatorInterface
 {
-    private iterable $items;
+    private array $items;
     private int $currentPage;
     private int $itemsPerPage;
     private int $totalItems;
 
-    public function __construct(iterable $items, int $currentPage, int $itemsPerPage, int $totalItems)
+    public function __construct(array $items = [], int $currentPage = 1, int $itemsPerPage = 10, int $totalItems = 100)
     {
         $this->items = $items;
         $this->currentPage = $currentPage;
@@ -24,22 +24,27 @@ class ElasticsearchPaginator implements \IteratorAggregate, PaginatorInterface
         yield from $this->items;
     }
 
-    public function getTotalItems(): float|int
+    public function getCurrentPage(): float
+    {
+        return (float) $this->currentPage;
+    }
+
+    public function getItemsPerPage(): float
+    {
+        return (float) $this->itemsPerPage;
+    }
+
+    public function getTotalItems(): float
+    {
+        return (float) $this->totalItems;
+    }
+
+    function count(): int
     {
         return $this->totalItems;
     }
 
-    public function getCurrentPage(): float|int
-    {
-        return $this->currentPage;
-    }
-
-    public function getItemsPerPage(): float|int
-    {
-        return $this->itemsPerPage;
-    }
-
-    public function getLastPage(): float|int
+    public function getLastPage(): float
     {
         return (int) ceil($this->totalItems / $this->itemsPerPage);
     }

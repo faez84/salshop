@@ -9,6 +9,7 @@ use App\Entity\ProductElastic;
 use Elasticsearch\ClientBuilder;
 use Symfony\Component\Serializer\Normalizer\DenormalizerInterface;
 use ApiPlatform\Metadata\Operation;
+use ApiPlatform\State\Pagination\Pagination;
 
 /**
  * This class is based on API Platforms elasticsearch implemenation.
@@ -21,7 +22,8 @@ class ElasticsearchProductProvider implements ProviderInterface
 {
     public $client;
     public function __construct(
-        private DenormalizerInterface $denormalizer
+        private DenormalizerInterface $denormalizer,
+        private Pagination $pagination
     ) {
         $this->client = ClientBuilder::create()->setHosts(['http://elasticsearch:9200'])->build();
     }
@@ -30,8 +32,8 @@ class ElasticsearchProductProvider implements ProviderInterface
     {
         $filters = $context['filters'] ?? [];
     // Get pagination parameters from context
-    $page = $context['pagination']['page'] ?? 1;
-    $itemsPerPage = $context['pagination']['itemsPerPage'] ?? 30;
+    $page = $this->pagination->getPage($context);
+    $itemsPerPage = $this->pagination->getLimit($operation);
 
     $from = ($page - 1) * $itemsPerPage;
         $must = [];
@@ -42,8 +44,6 @@ class ElasticsearchProductProvider implements ProviderInterface
             $should[] = [
                 'multi_match' => [
                     'query' => $filters['search'],
-                    'from' => $from,
-                    'size' => $itemsPerPage,
                     'fields' => [
                         'title^3',
                         'description',
@@ -83,15 +83,14 @@ class ElasticsearchProductProvider implements ProviderInterface
     
         $response = $this->client->search([
             'index' => 'productelastic',
-            'body' => ['query' => $query]
+            'body' => [
+                'from' => $from,
+                'size' => $itemsPerPage,
+                'query' => $query
+            ]
         ]);
-    
-        $items = [];
-        foreach ($response['hits']['hits'] as $hit) {
-            $items[] = $this->denormalizer->denormalize($hit['_source'], ProductElastic::class);
-        }
-    
-        $total = $response['hits']['total']['value'] ?? 0;
+        $items = array_map(fn ($hit) => $this->denormalizer->denormalize($hit['_source'], ProductElastic::class), $response['hits']['hits']);
+        $total = $response['hits']['total']['value'] ?? count($items);
     
         return new ElasticsearchPaginator($items, $page, $itemsPerPage, $total);
     }

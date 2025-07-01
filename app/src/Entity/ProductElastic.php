@@ -36,7 +36,7 @@ use ApiPlatform\Metadata\QueryParameter;
         new GetCollection(
             uriTemplate: 'productselastic',
             provider: ElasticsearchProductProvider::class, stateOptions: new Options(index: 'productselastic'),
-            paginationItemsPerPage: 20,
+            paginationItemsPerPage: 10,
             paginationEnabled:true,
            // parameters: [
             //'order[:property]' => new QueryParameter(filter: 'product.order_filter'),
