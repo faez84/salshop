@@ -5,13 +5,10 @@ declare(strict_types=1);
 namespace App\Controller;
 
 use App\Entity\Category;
-use App\Repository\CategoryRepository;
 use App\Repository\ProductRepository;
-use Symfony\Bridge\Doctrine\Attribute\MapEntity;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
-use Symfony\Component\Security\Http\Authentication\AuthenticationUtils;
 use Symfony\Component\Cache\Adapter\RedisAdapter;
 use Symfony\Component\Cache\Adapter\RedisTagAwareAdapter;
 use Symfony\Component\HttpKernel\Attribute\Cache;
