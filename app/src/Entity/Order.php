@@ -21,6 +21,10 @@ use Symfony\Component\Serializer\Attribute\Groups;
 #[ORM\HasLifecycleCallbacks]
 class Order implements \Stringable
 {
+    public const STATUS_PENDING_PAYMENT = 'pending_payment';
+    public const STATUS_FINISHED = 'finished';
+    public const STATUS_PAYMENT_FAILED = 'payment_failed';
+
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]

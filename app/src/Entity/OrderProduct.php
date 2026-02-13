@@ -102,7 +102,6 @@ class OrderProduct implements \Stringable
 
     public function setPproduct(?Product $pproduct): static
     {
-        $pproduct->setQuantity($pproduct->getQuantity() - $this->getAmount());
         $this->pproduct = $pproduct;
 
         return $this;

@@ -39,16 +39,16 @@ class PaymentController extends AbstractController
         if ($form->isSubmitted() && $form->isValid()) {
             // data is an array with "name", "email", and "message" keys
             $data = $form->getData();
-            if ($this->paymentMethodValidator->valdiate($data['paymentMethod'])) {
+            if ($this->paymentMethodValidator->validate($data['paymentMethod'])) {
                 $addressId = $data['addressId'];
                 $paymentMethod = $this->paymentMethodFactory->getPaymentMethod($data['paymentMethod']);
                 $result = $this->orderCheckout->finalizeOrder($paymentMethod, $addressId);
-                if ($result === true) {
+                if ($result->isSuccess()) {
                     return $this->redirectToRoute('order_execute');
                 }
                 $this->addFlash(
                     'notice',
-                    $result
+                    $result->getMessage()
                 );
                 return $this->redirectToRoute('disply_basket');
             }

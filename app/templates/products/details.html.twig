@@ -2,25 +2,24 @@
 {% block body %}
     <div class="bg-gray-100">
         <div class="container mx-auto px-4 py-8">
+        					<h2 class="mt-2 text-3xl font-bold tracking-tight text-slate-900 sm:text-4xl">
+								{{ product.title }}
+							</h2>
             <div class="flex flex-wrap -mx-4">
                 <!-- Product Images -->
                 <div class="w-full md:w-1/2 px-4 mb-8">
                     <img src="/images/products/{{ product.image }}" alt="Product"
                          class="w-full h-auto rounded-lg shadow-md mb-4" id="mainImage">
-                    <div class="flex gap-4 py-4 justify-center overflow-x-auto">
-                        <img src="/images/products/{{ product.image }}" alt="Thumbnail 1"
-                             class="size-16 sm:size-20 object-cover rounded-md cursor-pointer opacity-60 hover:opacity-100 transition duration-300"
-                             onclick="changeImage(this.src)">
-                        <img src="/images/products/{{ product.image }}" alt="Thumbnail 2"
-                             class="size-16 sm:size-20 object-cover rounded-md cursor-pointer opacity-60 hover:opacity-100 transition duration-300"
-                             onclick="changeImage(this.src)">
-                        <img src="/images/products/{{ product.image }}" alt="Thumbnail 3"
-                             class="size-16 sm:size-20 object-cover rounded-md cursor-pointer opacity-60 hover:opacity-100 transition duration-300"
-                             onclick="changeImage(this.src)">
-                        <img src="/images/products/{{ product.image }}" alt="Thumbnail 4"
-                             class="size-16 sm:size-20 object-cover rounded-md cursor-pointer opacity-60 hover:opacity-100 transition duration-300"
-                             onclick="changeImage(this.src)">
-                    </div>
+                   <div class="mt-4 flex justify-center gap-3 overflow-x-auto">
+						{% for index in 1..4 %}
+							<img
+								src="/images/products/{{ product.image }}"
+								alt="{{ product.title }} thumbnail {{ index }}"
+								class="size-16 cursor-pointer rounded-md border border-slate-200 object-cover opacity-70 transition hover:opacity-100 sm:size-20"
+								onclick="changeImage(this.src)"
+							>
+						{% endfor %}
+					</div>
                 </div>
 
                 <!-- Product Details -->
@@ -73,8 +72,10 @@
                     </div>
 
                     <div>
+                    {% if product.features %}
                         <h3 class="text-lg font-semibold mb-2">Key Features:</h3>
                         {{ product.features }}
+                    {% endif %}   
                     </div>
                 </div>
             </div>

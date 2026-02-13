@@ -18,11 +18,11 @@ class AppExtension extends AbstractExtension
     public function getFunctions(): array
     {
         return [
-            new TwigFunction('calculateArea', [$this, 'calculateArea']),
+            new TwigFunction('categoryList', [$this, 'categoryList']),
         ];
     }
 
-    public function calculateArea(): string
+    public function categoryList(): string
     {
         return $this->twig->render('layout/cats.html.twig', [
             'categories' => $this->categoriesRepository->findBy(['parent' => null])]);

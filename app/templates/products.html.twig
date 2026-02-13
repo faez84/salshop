@@ -1,25 +1,33 @@
 {% extends 'base.html.twig' %}
 {% block body %}
-<div class="">
-    <div class="bg-white">
-        <div class="mx-auto max-w-2xl px-4 py-16 sm:px-6 sm:py-24 lg:max-w-7xl lg:px-8">
-            <h2 class="sr-only">Products</h2>
+	<div class="">
+		<div class="bg-white">
+			<div class="mx-auto max-w-2xl px-4 py-16 sm:px-6 sm:py-24 lg:max-w-7xl lg:px-8">
+				<div class="mb-10 border-b border-slate-200 pb-5">
+					<div class="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+						<div>
+							<p class="text-xs font-semibold uppercase tracking-[0.22em] text-cyan-700">Category</p>
+							<h2 class="mt-2 text-3xl font-bold tracking-tight text-slate-900 sm:text-4xl">
+								{{ category.title }}
+							</h2>
+						</div>
+						<div class="inline-flex items-center rounded-full bg-slate-100 px-3 py-1 text-sm font-medium text-slate-700">
+							{{ products|length }}
+							{{ products|length == 1 ? 'product' : 'products' }}
+						</div>
+					</div>
+				</div>
 
-            <div class="grid grid-cols-1 gap-x-6 gap-y-10 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 xl:gap-x-8">
-                {% for product in products %}
-
-                    <a href="{{ path('product_details', {id: product.id}) }}" class="group">
-                        <div class="aspect-h-1 aspect-w-1 w-full h-72 overflow-hidden rounded-lg bg-gray-200 xl:aspect-h-8 xl:aspect-w-7">
-                            <img class="w-42 h-42" src="/images/products/{{ product.image }}"
-                                 alt="Tall slender porcelain bottle with natural clay textured body and cork stopper."
-                                 class="h-full w-full object-cover object-center group-hover:opacity-75">
-                        </div>
-                        <h3 class="mt-4 text-sm text-gray-700">{{ product.title }}</h3>
-                        <p class="mt-1 text-lg font-medium text-gray-900">$
-                            {{ product.price }}</p>
-                    </a>
-                {% endfor %}
-            </div>
-        </div>
-    </div>
-    {% endblock %}
+				<div class="grid grid-cols-1 gap-x-6 gap-y-10 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 xl:gap-x-8">
+					{% for product in products %}
+{% include 'products/box.html.twig' with {'product': product} only %}
+						 
+					{% else %}
+						<div class="col-span-full mt-4 rounded-md border border-slate-200 bg-slate-50 p-6 text-center text-slate-700">
+							No products found in "{{ category.title }}" yet.
+						</div>
+					{% endfor %}
+				</div>
+			</div>
+		</div>
+	{% endblock %}

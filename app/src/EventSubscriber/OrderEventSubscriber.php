@@ -5,27 +5,26 @@ declare(strict_types=1);
 namespace App\EventSubscriber;
 
 use App\Event\OrderEvent;
-use Doctrine\ORM\EntityManagerInterface;
+use Psr\Log\LoggerInterface;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 
 class OrderEventSubscriber implements EventSubscriberInterface
 {
-    public function __construct(private EntityManagerInterface $em)
+    public function __construct(private LoggerInterface $logger)
     {
     }
 
-    public static function getSubscribedEvents()
+    public static function getSubscribedEvents(): array
     {
         return [
-            OrderEvent::NAME => 'onOrderFinished'
+            OrderEvent::class => 'onOrderFinished',
         ];
     }
 
     public function onOrderFinished(OrderEvent $orderEvent): void
     {
-        $order = $orderEvent->getOrder();
-        $order->setStatus('Finished');
-        $this->em->persist($order);
-        $this->em->flush();
+        $this->logger->info('Order finished event dispatched.', [
+            'orderId' => $orderEvent->getOrder()->getId(),
+        ]);
     }
 }

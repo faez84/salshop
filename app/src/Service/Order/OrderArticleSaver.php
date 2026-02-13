@@ -8,7 +8,7 @@ use App\Entity\Order;
 use App\Entity\OrderProduct;
 use App\Entity\Product;
 use Doctrine\ORM\EntityManagerInterface;
-use Exception;
+use RuntimeException;
 
 class OrderArticleSaver
 {
@@ -20,17 +20,22 @@ class OrderArticleSaver
      * @param Order $order The order object to associate the products with
      * @param array<array<string>> $productIds An array containing the product IDs and corresponding data
      * @return void
-     * @throws Exception If a product is out of stock
+     * @throws RuntimeException If a product is not found or out of stock
      */
     public function save(Order $order, array $productIds): void
     {
         foreach ($productIds as $productId => $productData) {
             $product = $this->entityManager->getRepository(Product::class)->find($productId);
+            if (!$product instanceof Product) {
+                throw new RuntimeException(sprintf('Product with ID %s was not found.', (string) $productId));
+            }
+
             $amount = (int)$productData['amount'];
             $quantity = $product->getQuantity();
-            if ($amount > $product->getQuantity()) {
-                throw new Exception(sprintf("Product : %s is out of stock", $product->getTitle()));
+            if ($amount > $quantity) {
+                throw new RuntimeException(sprintf('Product: %s is out of stock.', $product->getTitle()));
             }
+
             $orderProduct = new OrderProduct();
             $orderProduct->setOOrder($order);
             $orderProduct->setPproduct($product);
@@ -43,7 +48,5 @@ class OrderArticleSaver
             $product->setQuantity($newQuantity);
             $this->entityManager->persist($product);
         }
-
-        $this->entityManager->flush();
     }
 }

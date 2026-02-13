@@ -7,12 +7,14 @@ namespace App\Service\Payment;
 class PaymentMethodValidator
 {
     private const METHODS = ['Paypal', 'CreditCard'];
+
+    public function validate(string $paymentMethod): bool
+    {
+        return in_array($paymentMethod, self::METHODS, true);
+    }
+
     public function valdiate(string $paymentMethod): bool
     {
-        if (in_array($paymentMethod, self::METHODS)) {
-            return true;
-        }
-
-        return false;
+        return $this->validate($paymentMethod);
     }
 }

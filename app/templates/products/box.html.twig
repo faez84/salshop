@@ -1,0 +1,19 @@
+<article class="p-3 overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md">
+	<a href="{{ path('product_details', {id: product.id}) }}" class="group block">
+		<div class="aspect-h-1 aspect-w-1 h-72 w-full overflow-hidden bg-slate-100 xl:aspect-h-8 xl:aspect-w-7">
+			<img
+				src="/images/products/{{ product.image }}"
+				alt="{{ product.title }}"
+				class="h-full w-full object-cover object-center transition-transform duration-300 group-hover:scale-105"
+			>
+		</div>
+		<div class="space-y-2 p-4">
+			<h3 class="line-clamp-2 text-base font-semibold text-slate-900">
+				{{ product.title }}
+			</h3>
+			<p class="text-lg font-bold text-cyan-800">
+				${{ product.price }}
+			</p>
+		</div>
+	</a>
+</article>
