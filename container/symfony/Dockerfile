@@ -1,8 +1,9 @@
 FROM php:8.2.1-fpm
 RUN apt-get update && \
-    apt-get install libldap2-dev libicu-dev -y git && \
+    apt-get install libldap2-dev libicu-dev librabbitmq-dev -y git && \
     docker-php-ext-configure ldap --with-libdir=lib/x86_64-linux-gnu/ && \
     docker-php-ext-install ldap pdo_mysql intl && \
+    pecl install amqp && docker-php-ext-enable amqp && \
     curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
  RUN curl -1sLf 'https://dl.cloudsmith.io/public/symfony/stable/setup.deb.sh' | bash
  RUN apt-get install -y symfony-cli

@@ -1,4 +1,4 @@
-version: '3'
+version: "3.8"
 
 services:
   nginx:
@@ -7,6 +7,8 @@ services:
       dockerfile: ./container/nginx/Dockerfile
     volumes:
       - ./app:/app
+      - app_vendor:/app/vendor
+      - app_var:/app/var
     ports:
       - "8000:80"
       - "444:443"
@@ -14,33 +16,62 @@ services:
       - app
     networks:
       - shop_net
+
   app:
     build:
       context: .
       dockerfile: ./container/symfony/Dockerfile
     volumes:
       - ./app:/app
+      - app_vendor:/app/vendor
+      - app_var:/app/var
     environment:
       DATABASE_URL: mysql://root:root@db/shopnewnew
-    #command:  y|composer install --working-dir=/var/www/app
+      MESSENGER_TRANSPORT_DSN: amqp://guest:guest@rabbitmq:5672/%2f/messages
     depends_on:
       - redis
+      - db
+      - rabbitmq
     networks:
       - shop_net
+
+  worker:
+    build:
+      context: .
+      dockerfile: ./container/symfony/Dockerfile
+    command: php bin/console messenger:consume async -vv --time-limit=3600 --memory-limit=256M
+    volumes:
+      - ./app:/app
+      - app_vendor:/app/vendor
+      - app_var:/app/var
+    environment:
+      DATABASE_URL: mysql://root:root@db/shopnewnew
+      MESSENGER_TRANSPORT_DSN: amqp://guest:guest@rabbitmq:5672/%2f/messages
+    depends_on:
+      - db
+      - redis
+      - rabbitmq
+    networks:
+      - shop_net
+
   db:
     image: mysql:8
-    command:
+    command: >
       --mysql-native-password=ON
+      --innodb_flush_log_at_trx_commit=2
+      --sync_binlog=0
     environment:
       MYSQL_DATABASE: shopnewnew
-      MYSQL_PASSWORD: root
       MYSQL_ROOT_PASSWORD: root
+      MYSQL_PASSWORD: root
+      MYSQL_ROOT_HOST: "%"
     ports:
       - "3345:3306"
     volumes:
-      - ./data/mysql_shop/:/var/lib/mysql:cached
+      - mysql_data:/var/lib/mysql
     networks:
       - shop_net
+
   redis:
     container_name: container_redis
     image: redis:latest
@@ -48,6 +79,18 @@ services:
       - "6379:6379"
     networks:
       - shop_net
+
+  rabbitmq:
+    image: rabbitmq:3-management
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    environment:
+      RABBITMQ_DEFAULT_USER: guest
+      RABBITMQ_DEFAULT_PASS: guest
+    networks:
+      - shop_net
+
   varnish:
     container_name: shop-varnish
     tty: true
@@ -59,9 +102,15 @@ services:
     networks:
       - shop_net
     ports:
-      - 5003:80
-    command: 'sh start'
+      - "5003:80"
+    command: "sh start"
     volumes:
       - ./container/varnish/varnish.vcl:/etc/varnish/default.vcl
+
 networks:
   shop_net:
+
+volumes:
+  mysql_data:
+  app_vendor:
+  app_var:
