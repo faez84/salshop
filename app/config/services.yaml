@@ -4,6 +4,7 @@
 # Put parameters here that don't need to change on each machine where the app is deployed
 # https://symfony.com/doc/current/best_practices.html#use-parameters-for-application-configuration
 parameters:
+    env(ELASTICSEARCH_HOSTS): 'http://elasticsearch:9200'
 
 services:
     # default configuration for services in *this* file
@@ -17,21 +18,49 @@ services:
         resource: '../src/'
         exclude:
             - '../src/DependencyInjection/'
-            - '../src/Entity/'
             - '../src/DataFixtures/'
+            - '../src/**/Domain/Entity/'
             - '../src/Factory/'
-            - '../src/Kernel.php'
-    payment.PaymentMethodValidator:
-        class: App\Service\Payment\PaymentMethodValidator
 
-    App\Service\BasketManager:
-        class: App\Service\BasketManager
-        autowire: true
-        public: true
-    App\Entity\Order:
-        class: App\Entity\Order
-        autowire: true
-        public: true
+
+            - '../src/Kernel.php'
+
+    Elastic\Elasticsearch\Client:
+        factory: ['@App\Service\Search\ElasticsearchClientFactory', 'create']
+        arguments:
+            - '%env(string:ELASTICSEARCH_HOSTS)%'
+
+#    payment.PaymentMethodValidator:
+ #       class: App\Service\Payment\PaymentMethodValidator
+
+    #App\Service\Order\IOrderStateManager: '@App\Service\Order\OrderStateManager'
+    #App\Service\Order\IStockReservationManager: '@App\Service\Order\StockReservationManager'
+    #App\Service\Promotion\IPromotionManager: '@App\Service\Promotion\PromotionManager'
+    App\Shared\Infrastructure\Observability\RequestContextProcessor:
+        tags:
+            - { name: monolog.processor }
+
+    #App\EventSubscriber\CatalogCacheInvalidationSubscriber:
+     #   tags:
+      #      - { name: doctrine.event_subscriber }
+
+    App\ApiPlatform\OrderOwnerExtension:
+        tags:
+            - { name: 'api_platform.doctrine.orm.query_extension.collection' }
+            - { name: 'api_platform.doctrine.orm.query_extension.item' }
+
+    App\ApiPlatform\AddressOwnerExtension:
+        tags:
+            - { name: 'api_platform.doctrine.orm.query_extension.collection' }
+            - { name: 'api_platform.doctrine.orm.query_extension.item' }
+
+    App\Address\Application\Port\Persistence\IAddressRepository:
+        alias: App\Address\Infrastructure\Persistence\Doctrine\AddressRepository
+    App\Basket\Application\Port\IProductReadRepository:
+        alias: App\Basket\Infrastructure\Persistence\Doctrine\BasketProductReadRepository
+
+
+ 
     # add more service definitions when explicit configuration is needed
     # please note that last definitions always *replace* previous ones
 #fos_http_cache:

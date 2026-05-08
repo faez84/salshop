@@ -1,0 +1,20 @@
+{
+	auto_https off
+	admin off
+}
+
+:80 {
+	root * /app/public
+	encode zstd br gzip
+
+	request_body {
+		max_size 50MB
+	}
+
+	# Keep AssetMapper behavior in dev: if the file is not built yet,
+	# forward to Symfony so it can resolve the asset dynamically.
+	@assets path /assets/*
+	header @assets Cache-Control "no-store, no-cache, must-revalidate, max-age=0"
+
+	php_server
+}

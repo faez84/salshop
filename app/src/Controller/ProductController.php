@@ -4,22 +4,35 @@ declare(strict_types=1);
 
 namespace App\Controller;
 
-use App\Entity\Category;
-use App\Repository\CategoryRepository;
-use App\Repository\ProductRepository;
+
+use App\Catalog\Application\Port\Persistence\IProductRepository;
+use App\Catalog\Infrastructure\Cache\CatalogCache;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
-use Symfony\Component\Security\Http\Authentication\AuthenticationUtils;
 
 class ProductController extends AbstractController
 {
-    #[Route(path:'/product/{id}', name: "product_details")]
+    public function __construct(
+        private readonly IProductRepository$productRepository,
+        private readonly CatalogCache $catalogCache
+    ) {
+    }
 
-    public function detail(int $id, ProductRepository $productRepository): Response
+    #[Route(path: '/product/{id}', name: 'product_details')]
+    public function detail(int $id): Response
     {
+        $product = $this->catalogCache->getProductDetail(
+            $id,
+            fn (): ?array => $this->productRepository->findDetailSummaryById($id)
+        );
+
+        if (null === $product) {
+            throw $this->createNotFoundException(sprintf('Product with ID %d was not found.', $id));
+        }
+
         return $this->render('products/details.html.twig', [
-            'product' => $productRepository->find($id),
-        ])->setMaxAge(3600);
+            'product' => $product,
+        ]);
     }
 }

@@ -1,0 +1,31 @@
+framework:
+    workflows:
+        order_checkout:
+            type: state_machine
+            marking_store:
+                type: method
+                property: status
+            supports:
+                - App\Entity\Order
+            initial_marking: pending_payment
+            places:
+                - pending_payment
+                - finished
+                - payment_failed
+                - refunded
+                - chargeback
+            transitions:
+                pay:
+                    from: pending_payment
+                    to: finished
+                fail:
+                    from: pending_payment
+                    to: payment_failed
+                refund:
+                    from: finished
+                    to: refunded
+                chargeback:
+                    from:
+                        - finished
+                        - refunded
+                    to: chargeback

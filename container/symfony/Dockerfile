@@ -10,6 +10,14 @@ RUN apt-get update && \
 RUN apt-get install -y  libzip-dev zip && \ 
         docker-php-ext-install zip
 
+# COPY ./container/symfony/php-memory-limit.ini /usr/local/etc/php/conf.d/99-memory-limit.ini
+
+# COPY ./container/symfony/php-opcache.ini /usr/local/etc/php/conf.d/10-opcache.ini
+
+# COPY ./container/symfony/opcache-preload.php /usr/local/etc/php/opcache-preload.php
+
+COPY ./container/symfony/php-fpm-pool-performance.conf /usr/local/etc/php-fpm.d/zz-www-performance.conf
+
 Copy ./ /app
 WORKDIR /app
 

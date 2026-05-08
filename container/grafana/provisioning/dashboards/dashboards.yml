@@ -1,0 +1,11 @@
+apiVersion: 1
+
+providers:
+  - name: salshop-k6
+    orgId: 1
+    folder: Salshop
+    type: file
+    disableDeletion: false
+    editable: true
+    options:
+      path: /var/lib/grafana/dashboards

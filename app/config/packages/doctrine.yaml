@@ -14,14 +14,33 @@ doctrine:
         report_fields_where_declared: true
         validate_xml_mapping: true
         naming_strategy: doctrine.orm.naming_strategy.underscore_number_aware
-        auto_mapping: true
+        auto_mapping: false
         mappings:
-            App:
-                type: attribute
+            CatalogInfrastructure:
                 is_bundle: false
-                dir: '%kernel.project_dir%/src/Entity'
-                prefix: 'App\Entity'
-                alias: App
+                type: attribute
+                dir: '%kernel.project_dir%/src/Catalog/Infrastructure/Persistence/Doctrine'
+                prefix: 'App\Catalog\Infrastructure\Persistence\Doctrine'
+                alias: CatalogInfrastructure
+            CheckoutInfrastructure:
+                is_bundle: false
+                type: attribute
+                dir: '%kernel.project_dir%/src/Checkout/Infrastructure/Persistence/Doctrine'
+                prefix: 'App\Checkout\Infrastructure\Persistence\Doctrine'
+                alias: CheckoutInfrastructure
+            UserInfrastructure:
+                is_bundle: false
+                type: attribute
+                dir: '%kernel.project_dir%/src/User/Infrastructure/Persistence/Doctrine'
+                prefix: 'App\User\Infrastructure\Persistence\Doctrine'
+                alias: UserInfrastructure   
+            AddressInfrastructure:
+                is_bundle: false
+                type: attribute
+                dir: '%kernel.project_dir%/src/Address/Infrastructure/Persistence/Doctrine'
+                prefix: 'App\Address\Infrastructure\Persistence\Doctrine'
+                alias: AddressInfrastructure   
+
         controller_resolver:
             auto_mapping: false
         dql:
@@ -35,6 +54,10 @@ when@test:
 
 when@prod:
     doctrine:
+        dbal:
+            replicas:
+                replica1:
+                    url: '%env(resolve:DATABASE_REPLICA_URL)%'
         orm:
             auto_generate_proxy_classes: false
             proxy_dir: '%kernel.build_dir%/doctrine/orm/Proxies'

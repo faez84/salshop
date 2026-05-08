@@ -17,21 +17,21 @@ services:
         resource: '../src/'
         exclude:
             - '../src/DependencyInjection/'
-            - '../src/Entity/'
             - '../src/DataFixtures/'
+            - '../src/Entity/'
+            - '../src/Event/'
             - '../src/Factory/'
+            - '../src/Message/'
+            - '../src/Service/Payment/PaypalCreateOrderResult.php'
+            - '../src/Service/Promotion/PromotionCalculationResult.php'
             - '../src/Kernel.php'
-    payment.PaymentMethodValidator:
-        class: App\Service\Payment\PaymentMethodValidator
+   # payment.PaymentMethodValidator:
+    #    class: App\Service\Payment\PaymentMethodValidator
 
-    App\Service\BasketManager:
-        class: App\Service\BasketManager
-        autowire: true
-        public: true
-    App\Entity\Order:
-        class: App\Entity\Order
-        autowire: true
-        public: true
+    #App\Service\Order\IOrderStateManager: '@App\Service\Order\OrderStateManager'
+    #App\Service\Order\IStockReservationManager: '@App\Service\Order\StockReservationManager'
+    #App\Service\Promotion\IPromotionManager: '@App\Service\Promotion\PromotionManager'
+
     App\Factory\UserFactory:
         class: App\Factory\UserFactory
         autowire: true

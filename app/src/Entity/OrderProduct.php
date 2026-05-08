@@ -4,14 +4,12 @@ declare(strict_types=1);
 
 namespace App\Entity;
 
-use ApiPlatform\Metadata\ApiResource;
 use App\Repository\OrderProductRepository;
 use DateTimeImmutable;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Serializer\Attribute\Groups;
 
 #[ORM\Entity(repositoryClass: OrderProductRepository::class)]
-#[ApiResource]
 #[ORM\HasLifecycleCallbacks]
 class OrderProduct implements \Stringable
 {
@@ -21,11 +19,11 @@ class OrderProduct implements \Stringable
     private ?int $id = null;
 
 
-    #[Groups(["order:read", "order:write"])]
+    #[Groups(["order:read"])]
     #[ORM\Column]
     private ?int $amount = null;
 
-    #[Groups(["order:read", "order:write"])]
+    #[Groups(["order:read"])]
     #[ORM\Column]
     private ?float $cost = null;
 
@@ -36,10 +34,23 @@ class OrderProduct implements \Stringable
     #[ORM\JoinColumn(nullable: false)]
     private ?Order $oorder = null;
 
-    #[Groups(["order:read", "order:write"])]
+    #[Groups(["order:read"])]
     #[ORM\ManyToOne(inversedBy: 'orderProducts')]
     #[ORM\JoinColumn(nullable: false)]
     private ?Product $pproduct = null;
+
+    private function __construct(int $amount, float $cost, Order $oorder, Product $pproduct)
+    {
+        $this->amount = $amount;
+        $this->cost = $cost;
+        $this->oorder = $oorder;
+        $this->pproduct = $pproduct;
+    }
+
+    public static function create(int $amount, float $cost, Order $oorder, Product $pproduct): self
+    {
+        return new self($amount, $cost, $oorder, $pproduct);
+    }
 
     public function getId(): ?int
     {

@@ -4,11 +4,41 @@ framework:
     #csrf_protection: true
 
     # Note that the session will be started ONLY if you read or write from it.
-    session: true
+    session:
+        handler_id: '%env(SESSION_HANDLER_DSN)%'
+        cookie_secure: auto
+        cookie_samesite: lax
 
     #esi: true
     #fragments: true
-    #http_cache: true
+    http_cache:
+        enabled: true
+        trace_level: short
+        stale_while_revalidate: 60
+        stale_if_error: 86400
+
+    rate_limiter:
+        checkout_finalize:
+            policy: token_bucket
+            limit: 10
+            rate:
+                interval: '1 minute'
+                amount: 10
+            cache_pool: cache.app
+
+        checkout_callback:
+            policy: token_bucket
+            limit: 30
+            rate:
+                interval: '1 minute'
+                amount: 30
+            cache_pool: cache.app
+
+        api_request:
+            policy: fixed_window
+            limit: 120
+            interval: '1 minute'
+            cache_pool: cache.app
 when@test:
     framework:
         test: true

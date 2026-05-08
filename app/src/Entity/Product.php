@@ -75,7 +75,7 @@ class Product
     #[ORM\Column(length: 255, nullable: true)]
     private ?string $image = null;
     #[Groups(["product:read", "product:write"])]
-    #[ORM\ManyToOne(inversedBy: 'products', cascade: ['remove'])]
+    #[ORM\ManyToOne(inversedBy: 'products')]
     #[ORM\JoinColumn(nullable: false)]
     private ?Category $category = null;
 
@@ -93,9 +93,21 @@ class Product
     #[ORM\OneToMany(targetEntity: OrderProduct::class, mappedBy: 'pproduct', orphanRemoval: true)]
     private Collection $orderProducts;
 
-    public function __construct()
+    private function __construct(string $title, float $price, int $quantity, ?string $description, ?string $image, ?Category $category, string $artNum, ?string $features)
     {
+        $this->title = $title;
+        $this->price = $price;
+        $this->quantity = $quantity;
+        $this->description = $description;
+        $this->image = $image;
+        $this->category = $category;
+        $this->artNum = $artNum;
+        $this->features = $features;
         $this->orderProducts = new ArrayCollection();
+    }
+    public static function create(string $title, float $price, int $quantity, ?string $description, ?string $image, ?Category $category, string $artNum, ?string $features): self
+    {
+        return new self($title, $price, $quantity, $description, $image, $category, $artNum, $features);
     }
 
     public function getId(): ?int

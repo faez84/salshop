@@ -1,0 +1,64 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: k6-loadtest
+spec:
+  backoffLimit: 0
+  ttlSecondsAfterFinished: 1800
+  template:
+    metadata:
+      labels:
+        app: k6-loadtest
+    spec:
+      restartPolicy: Never
+      containers:
+        - name: k6
+          image: grafana/k6:latest
+          imagePullPolicy: IfNotPresent
+          command:
+            - /bin/sh
+            - -lc
+            - |
+              set -e
+              k6 run -o experimental-prometheus-rw /scripts/k6-performance-baseline.js --summary-export=/tmp/k6-summary.json
+              echo "SUMMARY_JSON_START"
+              cat /tmp/k6-summary.json
+              echo "SUMMARY_JSON_END"
+          env:
+            - name: BASE_URL
+              value: http://service-symfony-shopapp-new3.default.svc.cluster.local
+            - name: K6_PROMETHEUS_RW_SERVER_URL
+              value: http://monitoring-kube-prometheus-prometheus.monitoring.svc:9090/api/v1/write
+            - name: K6_PROMETHEUS_RW_TREND_STATS
+              value: p(95),p(99),avg
+            - name: K6_TAG_TESTID
+              value: k8s-no-cache
+            - name: DISABLE_HTTP_CACHE
+              value: "1"
+            - name: START_RATE
+              value: "10"
+            - name: STAGE1_TARGET
+              value: "20"
+            - name: STAGE2_TARGET
+              value: "35"
+            - name: STAGE3_TARGET
+              value: "50"
+            - name: PRE_ALLOCATED_VUS
+              value: "30"
+            - name: MAX_VUS
+              value: "80"
+          resources:
+            requests:
+              cpu: "300m"
+              memory: "512Mi"
+            limits:
+              cpu: "1000m"
+              memory: "1Gi"
+          volumeMounts:
+            - name: k6-script
+              mountPath: /scripts
+              readOnly: true
+      volumes:
+        - name: k6-script
+          configMap:
+            name: k6-loadtest-script

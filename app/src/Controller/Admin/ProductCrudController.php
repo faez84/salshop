@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Controller\Admin;
 
-use App\Entity\Product;
+use App\Catalog\Infrastructure\Persistence\Doctrine\Product;
 use EasyCorp\Bundle\EasyAdminBundle\Controller\AbstractCrudController;
 use EasyCorp\Bundle\EasyAdminBundle\Field\AssociationField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\ImageField;
@@ -25,6 +25,20 @@ class ProductCrudController extends AbstractCrudController
     public static function getEntityFqcn(): string
     {
         return Product::class;
+    }
+
+    public function createEntity(string $entityFqcn): Product
+    {
+        return Product::create(
+            title: '',
+            price: 0.0,
+            quantity: 0,
+            description: null,
+            image: null,
+            category: null,
+            artNum: '',
+            features: null
+        );
     }
 
     public function configureFields(string $pageName): iterable

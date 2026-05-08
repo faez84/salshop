@@ -1,0 +1,37 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: app-loadgen
+  labels:
+    app: app-loadgen
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: app-loadgen
+  template:
+    metadata:
+      labels:
+        app: app-loadgen
+    spec:
+      containers:
+        - name: loadgen
+          image: curlimages/curl:8.12.1
+          command:
+            - /bin/sh
+            - -c
+            - |
+              while true; do
+                i=0
+                while [ "$i" -lt 40 ]; do
+                  curl -s -o /dev/null http://service-symfony-shopapp-new3/
+                  i=$((i+1))
+                done
+              done
+          resources:
+            requests:
+              cpu: "50m"
+              memory: "64Mi"
+            limits:
+              cpu: "200m"
+              memory: "128Mi"

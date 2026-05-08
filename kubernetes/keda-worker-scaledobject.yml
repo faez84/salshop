@@ -1,0 +1,29 @@
+apiVersion: keda.sh/v1alpha1
+kind: ScaledObject
+metadata:
+  name: symfony-shop-worker-queue-scaledobject
+  namespace: default
+spec:
+  scaleTargetRef:
+    kind: Deployment
+    name: symfony-shop-worker
+  pollingInterval: 15
+  cooldownPeriod: 120
+  minReplicaCount: 2
+  maxReplicaCount: 12
+  triggers:
+    - type: mysql
+      metadata:
+        host: service-symfony-shop-db.default.svc.cluster.local
+        port: "3306"
+        username: root
+        dbName: shopnewnew
+        query: >
+          SELECT COUNT(*)
+          FROM messenger_messages
+          WHERE queue_name IN ('async', 'checkout_async')
+            AND delivered_at IS NULL
+        queryValue: "20"
+        activationQueryValue: "1"
+      authenticationRef:
+        name: symfony-worker-mysql-auth

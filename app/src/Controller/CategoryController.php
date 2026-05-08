@@ -4,25 +4,31 @@ declare(strict_types=1);
 
 namespace App\Controller;
 
-use App\Entity\Category;
-use App\Repository\ProductRepository;
+use App\Catalog\Application\Port\Persistence\IProductRepository;
+use App\Catalog\Infrastructure\Cache\CatalogCache;
+use App\Catalog\Infrastructure\Persistence\Doctrine\Category;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
-use Symfony\Component\HttpKernel\Attribute\Cache;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 
 class CategoryController extends AbstractController
 {
     public function __construct(
-        readonly private ProductRepository $productRepository
+        readonly private IProductRepository $productRepository,
+        readonly private CatalogCache $catalogCache
     ) {
     }
 
-    #[Route(path: '/category/{id}/products', name: "category_products")]
-    #[Cache(public: true, maxage: 360, mustRevalidate: true)]
-    public function categoryProducts(Category $category,): Response
+    #[Route(path: '/category/{id}/products', name: 'category_products')]
+    public function categoryProducts(Category $category): Response
     {
-        $products = $this->productRepository->findBy(['category' => $category->getId()]);
+        $categoryId = (int) $category->getId();
+        //$products =  $this->productRepository->findByCategoryForList($categoryId);
+        
+        $products = $this->catalogCache->getCategoryProducts(
+            $categoryId,
+            fn (): array => $this->productRepository->findByCategoryForList($categoryId)
+        );
 
         return $this->render('products.html.twig', [
             'category' => $category,

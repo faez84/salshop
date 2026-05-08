@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace App\Controller;
 
-use App\Entity\Address;
+use App\Address\Application\UseCase\CreateAddressLine;
 use App\Form\AddressType;
-use App\Service\Address\AddressLineBuilder;
+use App\User\Infrastructure\Persistence\Doctrine\User;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Bundle\SecurityBundle\Security;
@@ -17,16 +17,16 @@ use Symfony\Component\Routing\Attribute\Route;
 class AddressController extends AbstractController
 {
     public function __construct(
-        private AddressLineBuilder $addressBuilder,
+        private CreateAddressLine $addressCreator,
         private readonly EntityManagerInterface $entityManager,
         private readonly Security $security
     ) {
     }
 
     #[Route(path: '/basket/show_user_address', name: "show_user_address")]
-    public function showUserAddresses(Request $request): Response
+    public function showUserAddresses(): Response
     {
-        $addresses = $this->addressBuilder->build();
+        $addresses = $this->addressCreator->build();
         return $this->render('address/userAddresses.html.twig', [
             'addresses' => $addresses
         ]);
@@ -38,8 +38,13 @@ class AddressController extends AbstractController
         $form = $this->createForm(AddressType::class);
         $form->handleRequest($request);
         if ($form->isSubmitted() && $form->isValid()) {
+            $user = $this->security->getUser();
+            if (!$user instanceof User) {
+                throw $this->createAccessDeniedException();
+            }
+
             $address = $form->getData();
-            $address->setUser($this->security->getUser());
+            $address->setUser($user);
             $this->entityManager->persist($address);
             $this->entityManager->flush();
         }

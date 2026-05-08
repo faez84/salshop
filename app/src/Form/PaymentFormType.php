@@ -4,19 +4,13 @@ declare(strict_types=1);
 
 namespace App\Form;
 
-use App\Entity\User;
 use Symfony\Component\Form\AbstractType;
-use Symfony\Component\Form\Extension\Core\Type\ButtonType;
-use Symfony\Component\Form\Extension\Core\Type\CheckboxType;
 use Symfony\Component\Form\Extension\Core\Type\ChoiceType;
-use Symfony\Component\Form\Extension\Core\Type\CollectionType;
 use Symfony\Component\Form\Extension\Core\Type\HiddenType;
-use Symfony\Component\Form\Extension\Core\Type\PasswordType;
-use Symfony\Component\Form\Extension\Core\Type\RepeatedType;
 use Symfony\Component\Form\Extension\Core\Type\SubmitType;
+use Symfony\Component\Form\Extension\Core\Type\TextType;
 use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\OptionsResolver\OptionsResolver;
-use Symfony\Component\Validator\Constraints\IsTrue;
 
 class PaymentFormType extends AbstractType
 {
@@ -24,10 +18,31 @@ class PaymentFormType extends AbstractType
     {
         $builder
             ->add('paymentMethod', ChoiceType::class, options: [
-                'choices' => $options['data']['methods']])
+                'choices' => $options['methods'],
+            ])
             ->add('addressId', HiddenType::class, options: [
-                'data' => $options['data']['addressId']
+                'data' => $options['addressId'],
+            ])
+            ->add('idempotencyKey', HiddenType::class, options: [
+                'data' => $options['idempotencyKey'],
+            ])
+            ->add('promoCode', TextType::class, [
+                'required' => false,
+                'empty_data' => '',
+                'data' => $options['promoCode'],
+                'label' => 'Promotion code',
             ])
             ->add('save', SubmitType::class);
+    }
+
+    public function configureOptions(OptionsResolver $resolver): void
+    {
+        $resolver->setDefaults([
+            'data_class' => null,
+            'methods' => [],
+            'addressId' => '',
+            'idempotencyKey' => '',
+            'promoCode' => '',
+        ]);
     }
 }

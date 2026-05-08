@@ -4,9 +4,7 @@ declare(strict_types=1);
 
 namespace App\Form;
 
-use App\Entity\Address;
-use App\Entity\User;
-use Symfony\Bridge\Doctrine\Form\Type\EntityType;
+use App\Address\Infrastructure\Persistence\Doctrine\Address;
 use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\Extension\Core\Type\SubmitType;
 use Symfony\Component\Form\FormBuilderInterface;
@@ -26,7 +24,7 @@ class AddressType extends AbstractType
                 'class' => 'border-1 border-blue-700'
             ]])
             ->add('zip')
-            ->add('defualt')
+            ->add('isDefault')
             ->add('save', SubmitType::class, [
                     'attr' =>
                         [

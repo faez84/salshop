@@ -27,7 +27,11 @@ services:
       - app_var:/app/var
     environment:
       DATABASE_URL: mysql://root:root@db/shopnewnew
-      MESSENGER_TRANSPORT_DSN: amqp://guest:guest@rabbitmq:5672/%2f/messages
+      MESSENGER_TRANSPORT_DSN: doctrine://default?queue_name=async
+      MESSENGER_CHECKOUT_TRANSPORT_DSN: doctrine://default?queue_name=checkout_async
+      REDIS_URL: redis://redis:6379
+      SESSION_HANDLER_DSN: redis://redis:6379
+      LOCK_DSN: redis://redis:6379
     depends_on:
       - redis
       - db
@@ -35,18 +39,52 @@ services:
     networks:
       - shop_net
 
+  frankenphp:
+    profiles: ["frankenphp"]
+    build:
+      context: .
+      dockerfile: ./container/frankenphp/Dockerfile
+    command: >
+      sh -lc "if [ ! -f vendor/autoload.php ]; then composer install --no-interaction --prefer-dist; fi; frankenphp run -c /etc/frankenphp/Caddyfile"
+    volumes:
+      - ./app:/app
+      - app_vendor:/app/vendor
+      - app_var:/app/var
+    environment:
+      APP_ENV: dev
+      APP_DEBUG: 1
+      DATABASE_URL: mysql://root:root@db/shopnewnew
+      MESSENGER_TRANSPORT_DSN: doctrine://default?queue_name=async
+      MESSENGER_CHECKOUT_TRANSPORT_DSN: doctrine://default?queue_name=checkout_async
+      REDIS_URL: redis://redis:6379
+      SESSION_HANDLER_DSN: redis://redis:6379
+      LOCK_DSN: redis://redis:6379
+      SERVER_NAME: ":80"
+    depends_on:
+      - db
+      - redis
+      - rabbitmq
+    ports:
+      - "8080:80"
+    networks:
+      - shop_net
+
   worker:
     build:
       context: .
       dockerfile: ./container/symfony/Dockerfile
-    command: php bin/console messenger:consume async -vv --time-limit=3600 --memory-limit=256M
+    command: php bin/console messenger:consume checkout_async async -vv --time-limit=3600 --memory-limit=256M
     volumes:
       - ./app:/app
       - app_vendor:/app/vendor
       - app_var:/app/var
     environment:
       DATABASE_URL: mysql://root:root@db/shopnewnew
-      MESSENGER_TRANSPORT_DSN: amqp://guest:guest@rabbitmq:5672/%2f/messages
+      MESSENGER_TRANSPORT_DSN: doctrine://default?queue_name=async
+      MESSENGER_CHECKOUT_TRANSPORT_DSN: doctrine://default?queue_name=checkout_async
+      REDIS_URL: redis://redis:6379
+      SESSION_HANDLER_DSN: redis://redis:6379
+      LOCK_DSN: redis://redis:6379
     depends_on:
       - db
       - redis
@@ -107,6 +145,129 @@ services:
     volumes:
       - ./container/varnish/varnish.vcl:/etc/varnish/default.vcl
 
+  xtrabackup:
+    image: percona/percona-xtrabackup:8.4
+    profiles: ["ops"]
+    user: "0:0"
+    depends_on:
+      - db
+    volumes:
+      - mysql_data:/var/lib/mysql:ro
+      - ./backups/mysql:/backup
+    networks:
+      - shop_net
+    command: ["bash", "-lc", "sleep infinity"]
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:8.13.4
+    container_name: shopelasticsearch
+    profiles: ["ops"]
+    environment:
+    - discovery.type=single-node
+    - xpack.security.enabled=false
+    - xpack.monitoring.collection.enabled=true
+    - bootstrap.memory_lock=true
+    - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+    ports:
+      - "9200:9200"
+    networks:
+      - shop_net
+  kibana:
+    image: docker.elastic.co/kibana/kibana:8.13.4
+    profiles: ["ops"]
+    volumes:
+      - ./kibana.yml:/usr/share/kibana/config/kibana.yml
+    ports:
+      - 5601:5601
+    environment:
+      ELASTICSEARCH_HOSTS: http://elasticsearch:9200
+    depends_on:
+      - elasticsearch
+    networks:
+      - shop_net
+  grafana:
+    image: grafana/grafana:11.1.4
+    container_name: shop-grafana
+    profiles: ["ops"]
+    ports:
+      - "3001:3000"
+    environment:
+      GF_SECURITY_ADMIN_USER: admin
+      GF_SECURITY_ADMIN_PASSWORD: admin
+      GF_USERS_ALLOW_SIGN_UP: "false"
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ./container/grafana/provisioning:/etc/grafana/provisioning:ro
+      - ./container/grafana/dashboards:/var/lib/grafana/dashboards:ro
+    depends_on:
+      - prometheus
+    networks:
+      - shop_net
+  prometheus:
+    image: prom/prometheus:v2.54.1
+    container_name: shop-prometheus
+    command:
+      - --config.file=/etc/prometheus/prometheus.yml
+      - --storage.tsdb.path=/prometheus
+      - --web.enable-lifecycle
+      - --web.enable-remote-write-receiver
+    ports:
+      - "9091:9090"
+    volumes:
+      - ./container/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus_data:/prometheus
+    networks:
+      - shop_net
+  redis-exporter:
+    image: oliver006/redis_exporter:v1.66.0
+    container_name: shop-redis-exporter
+    environment:
+      REDIS_ADDR: redis://redis:6379
+    depends_on:
+      - redis
+    networks:
+      - shop_net
+  mysqld-exporter:
+    image: prom/mysqld-exporter:v0.16.0
+    container_name: shop-mysqld-exporter
+    profiles: ["ops"]
+    command:
+      - --config.my-cnf=/etc/mysqld-exporter/.my.cnf
+      - --collect.global_status
+      - --collect.global_variables
+      - --collect.perf_schema.eventsstatements
+    volumes:
+      - ./container/mysqld-exporter/.my.cnf:/etc/mysqld-exporter/.my.cnf:ro
+    depends_on:
+      - db
+    networks:
+      - shop_net
+  shipper:
+    image: docker.elastic.co/beats/filebeat:8.13.4
+    user: root
+    profiles: ["ops"]
+    volumes:
+      - /var/lib/docker:/var/lib/docker:ro
+      - ./filebeat.yml:/usr/share/filebeat/filebeat.yml
+      - /var/run/docker.sock:/var/run/docker.sock
+    networks:
+      - shop_net
+  newrelic_logs:
+    image: newrelic/newrelic-fluentbit-output:2.3.0
+    profiles: ["opsc"]
+    restart: unless-stopped
+    environment:
+      LICENSE_KEY: ${NEW_RELIC_LICENSE_KEY:-}
+      FILE_PATH: /var/log/symfony/*.log
+    volumes:
+      - ./app/var/log:/var/log/symfony:ro
+    depends_on:
+      - app
+    networks:
+      - shop_net
 networks:
   shop_net:
 
@@ -114,3 +275,5 @@ volumes:
   mysql_data:
   app_vendor:
   app_var:
+  grafana_data:
+  prometheus_data:

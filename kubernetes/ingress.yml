@@ -12,6 +12,6 @@ spec:
         path: /
         backend:
           service:
-            name: service-symfony-shopapp-new4
+            name: service-symfony-shopapp-new3
             port:
               number: 80

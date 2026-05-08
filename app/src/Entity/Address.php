@@ -5,22 +5,34 @@ declare(strict_types=1);
 namespace App\Entity;
 
 use ApiPlatform\Metadata\ApiResource;
+use ApiPlatform\Metadata\Get;
+use ApiPlatform\Metadata\GetCollection;
+use ApiPlatform\Metadata\Post;
 use App\Repository\AddressRepository;
 use App\State\UserAddrressPostStaeProcessor;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Serializer\Annotation\Groups;
-use ApiPlatform\Metadata\Post;
 use Symfony\Component\Validator\Constraints as Assert;
 
 #[ORM\Entity(repositoryClass: AddressRepository::class)]
-#[ApiResource]
 #[ApiResource(operations:[
+    new Get(
+        normalizationContext: ['groups' => ['user:address:read']],
+        security: "is_granted('ROLE_ADMIN') or object.getUser() == user",
+    ),
+    new GetCollection(
+        uriTemplate: '/users/addresses',
+        normalizationContext: ['groups' => ['user:address:read']],
+        security: "is_granted('ROLE_USER')",
+    ),
     new Post(
-        processor: UserAddrressPostStaeProcessor::class,
+        processor: UserAddressPostStateProcessor::class,
         uriTemplate: '/users/addresses',
         denormalizationContext: ['groups' => ['user:address:write']],
+        normalizationContext: ['groups' => ['user:address:read']],
+        security: "is_granted('ROLE_USER')",
     ),
 ])]
 

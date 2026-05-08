@@ -7,7 +7,7 @@ security:
         # used to reload user from session & other features (e.g. switch_user)
         app_user_provider:
             entity:
-                class: App\Entity\User
+                class: App\User\Infrastructure\Persistence\Doctrine\User
                 property: email
     firewalls:
         api_token_refresh:
@@ -29,6 +29,9 @@ security:
         login:
             pattern: ^/api/login
             stateless: true
+            login_throttling:
+                max_attempts: 5
+                interval: '15 minutes'
             json_login:
                 check_path: /api/login_check
                 success_handler: lexik_jwt_authentication.handler.authentication_success
@@ -42,6 +45,9 @@ security:
         main:
             lazy: true
             provider: app_user_provider
+            login_throttling:
+                max_attempts: 5
+                interval: '15 minutes'
             form_login:
                 # "app_login" is the name of the route created previously
                 login_path: app_login
@@ -63,7 +69,7 @@ security:
         - { path: ^/api/token/refresh, roles: PUBLIC_ACCESS }
         - { path: ^/api/categories, roles: PUBLIC_ACCESS }
         - { path: ^/api/products, roles: PUBLIC_ACCESS }
-        - { path: ^/api/users/addresses, roles: PUBLIC_ACCESS }
+        - { path: ^/api/users/addresses, roles: IS_AUTHENTICATED_FULLY }
         - { path: ^/api,       roles: IS_AUTHENTICATED_FULLY }
         
         - { path: ^/admin,       roles: IS_AUTHENTICATED_FULLY }
@@ -85,3 +91,12 @@ when@test:
                 cost: 4 # Lowest possible value for bcrypt
                 time_cost: 3 # Lowest possible value for argon
                 memory_cost: 10 # Lowest possible value for argon
+        firewalls:
+            login:
+                login_throttling:
+                    max_attempts: 10000
+                    interval: '1 minute'
+            main:
+                login_throttling:
+                    max_attempts: 10000
+                    interval: '1 minute'

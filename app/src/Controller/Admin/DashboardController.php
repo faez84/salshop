@@ -4,12 +4,12 @@ declare(strict_types=1);
 
 namespace App\Controller\Admin;
 
-use App\Entity\Category;
-use App\Entity\Order;
-use App\Entity\OrderProduct;
-use App\Entity\Product;
-use App\Entity\User;
-use App\Repository\OrderRepository;
+use App\Catalog\Infrastructure\Persistence\Doctrine\Category;
+use App\Checkout\Infrastructure\Persistence\Doctrine\Order;
+use App\Checkout\Infrastructure\Persistence\Doctrine\OrderProduct;
+use App\Catalog\Infrastructure\Persistence\Doctrine\Product;
+use App\User\Infrastructure\Persistence\Doctrine\User;
+use App\Checkout\Infrastructure\Persistence\Doctrine\OrderRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use EasyCorp\Bundle\EasyAdminBundle\Attribute\AdminDashboard;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Asset;

@@ -1,21 +1,292 @@
 apiVersion: v1
-kind: Pod
+kind: Secret
 metadata:
-  name: symfony-shop-db
+  name: symfony-shop-db-secret
+type: Opaque
+stringData:
+  MYSQL_ROOT_PASSWORD: REPLACE_WITH_STRONG_ROOT_PASSWORD
+  MYSQL_DATABASE: REPLACE_WITH_DB_NAME
+  MYSQL_USER: REPLACE_WITH_DB_USER
+  MYSQL_PASSWORD: REPLACE_WITH_DB_PASSWORD
+  MYSQL_REPLICATION_USER: REPLACE_WITH_REPL_USER
+  MYSQL_REPLICATION_PASSWORD: REPLACE_WITH_REPL_PASSWORD
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: symfony-shop-db-primary-init
+data:
+  01-create-replication-user.sh: |
+    #!/bin/sh
+    set -eu
+
+    mysql -uroot -p"${MYSQL_ROOT_PASSWORD}" <<-EOSQL
+      CREATE USER IF NOT EXISTS '${MYSQL_REPLICATION_USER}'@'%' IDENTIFIED BY '${MYSQL_REPLICATION_PASSWORD}';
+      GRANT REPLICATION SLAVE, REPLICATION CLIENT ON *.* TO '${MYSQL_REPLICATION_USER}'@'%';
+      FLUSH PRIVILEGES;
+    EOSQL
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: symfony-shop-db-primary
   labels:
     app: symfony-shop-db
+    role: primary
 spec:
-  containers:
-    - name: symfony-shop-db
-      image: mysql:8.0
-      ports:
-        - containerPort: 3306
-      env:
-        - name: MYSQL_ROOT_PASSWORD
-          value: root
-        - name: MYSQL_DATABASE
-          value: shopnewnew
-        - name: MYSQL_USER
-          value: bbbb
-        - name: MYSQL_PASSWORD
-          value: bbbb
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: symfony-shop-db
+      role: primary
+  template:
+    metadata:
+      labels:
+        app: symfony-shop-db
+        role: primary
+    spec:
+      containers:
+        - name: mysql
+          image: mysql:8.0
+          args:
+            - --server-id=1
+            - --log-bin=mysql-bin
+            - --binlog-format=ROW
+            - --gtid-mode=ON
+            - --enforce-gtid-consistency=ON
+          ports:
+            - containerPort: 3306
+          env:
+            - name: MYSQL_ROOT_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: symfony-shop-db-secret
+                  key: MYSQL_ROOT_PASSWORD
+            - name: MYSQL_DATABASE
+              valueFrom:
+                secretKeyRef:
+                  name: symfony-shop-db-secret
+                  key: MYSQL_DATABASE
+            - name: MYSQL_USER
+              valueFrom:
+                secretKeyRef:
+                  name: symfony-shop-db-secret
+                  key: MYSQL_USER
+            - name: MYSQL_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: symfony-shop-db-secret
+                  key: MYSQL_PASSWORD
+            - name: MYSQL_REPLICATION_USER
+              valueFrom:
+                secretKeyRef:
+                  name: symfony-shop-db-secret
+                  key: MYSQL_REPLICATION_USER
+            - name: MYSQL_REPLICATION_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: symfony-shop-db-secret
+                  key: MYSQL_REPLICATION_PASSWORD
+          resources:
+            requests:
+              cpu: "500m"
+              memory: "1Gi"
+            limits:
+              cpu: "1500m"
+              memory: "2Gi"
+          startupProbe:
+            exec:
+              command:
+                - sh
+                - -c
+                - "MYSQL_PWD=$MYSQL_ROOT_PASSWORD mysqladmin ping -h 127.0.0.1 -uroot --silent"
+            periodSeconds: 10
+            timeoutSeconds: 8
+            failureThreshold: 40
+          readinessProbe:
+            exec:
+              command:
+                - sh
+                - -c
+                - "MYSQL_PWD=$MYSQL_ROOT_PASSWORD mysqladmin ping -h 127.0.0.1 -uroot --silent"
+            periodSeconds: 10
+            timeoutSeconds: 8
+            failureThreshold: 6
+          livenessProbe:
+            exec:
+              command:
+                - sh
+                - -c
+                - "MYSQL_PWD=$MYSQL_ROOT_PASSWORD mysqladmin ping -h 127.0.0.1 -uroot --silent"
+            periodSeconds: 15
+            timeoutSeconds: 8
+            failureThreshold: 6
+          volumeMounts:
+            - name: mysql-primary-data
+              mountPath: /var/lib/mysql
+            - name: mysql-primary-init
+              mountPath: /docker-entrypoint-initdb.d
+      volumes:
+        - name: mysql-primary-data
+          persistentVolumeClaim:
+            claimName: symfony-shop-db-pvc
+        - name: mysql-primary-init
+          configMap:
+            name: symfony-shop-db-primary-init
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: symfony-shop-db-replica
+  labels:
+    app: symfony-shop-db
+    role: replica
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: symfony-shop-db
+      role: replica
+  template:
+    metadata:
+      labels:
+        app: symfony-shop-db
+        role: replica
+    spec:
+      containers:
+        - name: mysql
+          image: mysql:8.0
+          args:
+            - --server-id=2
+            - --relay-log=mysql-relay-bin
+            - --read-only=ON
+            - --super-read-only=ON
+            - --gtid-mode=ON
+            - --enforce-gtid-consistency=ON
+          ports:
+            - containerPort: 3306
+          env:
+            - name: MYSQL_ROOT_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: symfony-shop-db-secret
+                  key: MYSQL_ROOT_PASSWORD
+            - name: MYSQL_DATABASE
+              valueFrom:
+                secretKeyRef:
+                  name: symfony-shop-db-secret
+                  key: MYSQL_DATABASE
+            - name: MYSQL_USER
+              valueFrom:
+                secretKeyRef:
+                  name: symfony-shop-db-secret
+                  key: MYSQL_USER
+            - name: MYSQL_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: symfony-shop-db-secret
+                  key: MYSQL_PASSWORD
+            - name: MYSQL_REPLICATION_USER
+              valueFrom:
+                secretKeyRef:
+                  name: symfony-shop-db-secret
+                  key: MYSQL_REPLICATION_USER
+            - name: MYSQL_REPLICATION_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: symfony-shop-db-secret
+                  key: MYSQL_REPLICATION_PASSWORD
+          resources:
+            requests:
+              cpu: "400m"
+              memory: "768Mi"
+            limits:
+              cpu: "1200m"
+              memory: "1536Mi"
+          lifecycle:
+            postStart:
+              exec:
+                command:
+                  - sh
+                  - -c
+                  - |
+                    set +e
+
+                    # Wait for local mysqld.
+                    until mysqladmin ping -h 127.0.0.1 -uroot -p"${MYSQL_ROOT_PASSWORD}" --silent; do
+                      sleep 2
+                    done
+
+                    # Wait for primary service TCP reachability (auth can vary, so keep this check simple).
+                    until mysqladmin ping -h service-symfony-shop-db --silent; do
+                      sleep 2
+                    done
+
+                    mysql -uroot -p"${MYSQL_ROOT_PASSWORD}" -e "STOP REPLICA;" || true
+                    mysql -uroot -p"${MYSQL_ROOT_PASSWORD}" -e "RESET REPLICA ALL;" || true
+                    mysql -uroot -p"${MYSQL_ROOT_PASSWORD}" -e "CHANGE REPLICATION SOURCE TO SOURCE_HOST='service-symfony-shop-db', SOURCE_PORT=3306, SOURCE_USER='${MYSQL_REPLICATION_USER}', SOURCE_PASSWORD='${MYSQL_REPLICATION_PASSWORD}', SOURCE_AUTO_POSITION=1, GET_SOURCE_PUBLIC_KEY=1, SOURCE_CONNECT_RETRY=3, SOURCE_RETRY_COUNT=86400;" || true
+                    mysql -uroot -p"${MYSQL_ROOT_PASSWORD}" -e "START REPLICA;" || true
+                    mysql -uroot -p"${MYSQL_ROOT_PASSWORD}" -e "SHOW REPLICA STATUS\\G" || true
+
+                    # Do not fail container lifecycle if replication bootstrap is temporarily unavailable.
+                    exit 0
+          startupProbe:
+            exec:
+              command:
+                - sh
+                - -c
+                - "MYSQL_PWD=$MYSQL_ROOT_PASSWORD mysqladmin ping -h 127.0.0.1 -uroot --silent"
+            periodSeconds: 10
+            timeoutSeconds: 8
+            failureThreshold: 40
+          readinessProbe:
+            exec:
+              command:
+                - sh
+                - -c
+                - "MYSQL_PWD=$MYSQL_ROOT_PASSWORD mysqladmin ping -h 127.0.0.1 -uroot --silent"
+            periodSeconds: 10
+            timeoutSeconds: 8
+            failureThreshold: 6
+          livenessProbe:
+            exec:
+              command:
+                - sh
+                - -c
+                - "MYSQL_PWD=$MYSQL_ROOT_PASSWORD mysqladmin ping -h 127.0.0.1 -uroot --silent"
+            periodSeconds: 15
+            timeoutSeconds: 8
+            failureThreshold: 6
+          volumeMounts:
+            - name: mysql-replica-data
+              mountPath: /var/lib/mysql
+      volumes:
+        - name: mysql-replica-data
+          persistentVolumeClaim:
+            claimName: symfony-shop-db-replica-pvc
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: symfony-shop-db-pvc
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 5Gi
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: symfony-shop-db-replica-pvc
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 5Gi

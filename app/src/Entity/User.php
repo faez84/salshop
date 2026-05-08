@@ -9,8 +9,6 @@ use ApiPlatform\Metadata\Get;
 use ApiPlatform\Metadata\GetCollection;
 use ApiPlatform\Metadata\Post;
 use App\Repository\UserRepository;
-use App\Provider\UserAddressesProvider;
-use App\State\UserAddrressPostStaeProcessor;
 use App\State\UserHashPasswordStateProcessor;
 use App\State\UserResetPasswordProcessor;
 use Doctrine\Common\Collections\ArrayCollection;
@@ -24,29 +22,26 @@ use Symfony\Component\Validator\Constraints as Assert;
 #[ORM\Entity(repositoryClass: UserRepository::class)]
 #[ORM\UniqueConstraint(name: 'UNIQ_IDENTIFIER_EMAIL', fields: ['email'])]
 #[ApiResource(operations:[
-    new GetCollection(
-        uriTemplate: '/users/addresses',
-        normalizationContext: ['groups' => ['user:address:read']],
-    ),
-], provider: UserAddressesProvider::class,)]
-
-#[ApiResource(operations:[
     new Get(
-        normalizationContext: ['groups' => ['user:read']]
+        normalizationContext: ['groups' => ['user:read']],
+        security: "is_granted('ROLE_ADMIN') or object == user"
     ),
     new GetCollection(
-        normalizationContext: ['groups' => ['user:read']]
+        normalizationContext: ['groups' => ['user:read']],
+        security: "is_granted('ROLE_ADMIN')"
     ),
 
     new Post(
         processor: UserHashPasswordStateProcessor::class,
         denormalizationContext: ['groups' => ['user:write']],
-        validationContext: ['groups' => ['Default', 'postValidation']]
+        validationContext: ['groups' => ['Default', 'postValidation']],
+        security: "true"
     ),
     new Post(
         uriTemplate: "/users/reset_password",
         processor: UserResetPasswordProcessor::class,
-        denormalizationContext: ['groups' => ['user:reset']]
+        denormalizationContext: ['groups' => ['user:reset']],
+        security: "is_granted('ROLE_USER')"
     )
 ])]
 class User implements UserInterface, PasswordAuthenticatedUserInterface
@@ -65,7 +60,6 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     /**
      * @var list<string> The user roles
      */
-    #[Groups(["user:read", "user:write"])]
     #[ORM\Column]
     private array $roles = [];
 

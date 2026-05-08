@@ -1,0 +1,99 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: symfony-shop-worker
+  labels:
+    app: symfony-shop-worker
+    type: worker
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: symfony-shop-worker
+      type: worker
+  template:
+    metadata:
+      labels:
+        app: symfony-shop-worker
+        type: worker
+    spec:
+      containers:
+        - name: worker
+          image: faezsal/symfony-shop-app:3.1.1
+          env:
+            - name: APP_ENV
+              value: prod
+            - name: APP_DEBUG
+              value: "0"
+            - name: APP_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: symfony-shop-secrets
+                  key: APP_SECRET
+            - name: DATABASE_URL
+              valueFrom:
+                secretKeyRef:
+                  name: symfony-shop-secrets
+                  key: DATABASE_URL
+            - name: DATABASE_REPLICA_URL
+              valueFrom:
+                secretKeyRef:
+                  name: symfony-shop-secrets
+                  key: DATABASE_URL
+            - name: DB_HOST
+              value: service-symfony-shop-db
+            - name: REDIS_URL
+              value: redis://redis:6379
+            - name: CACHE_ADAPTER
+              value: cache.adapter.redis
+            - name: SESSION_HANDLER_DSN
+              value: redis://redis:6379
+            - name: LOCK_DSN
+              value: redis://redis:6379
+            - name: PAYPAL_BASE_URL
+              value: https://api-m.sandbox.paypal.com
+            - name: PAYPAL_CLIENT_ID
+              valueFrom:
+                secretKeyRef:
+                  name: symfony-shop-secrets
+                  key: PAYPAL_CLIENT_ID
+            - name: PAYPAL_CLIENT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: symfony-shop-secrets
+                  key: PAYPAL_CLIENT_SECRET
+            - name: MESSENGER_TRANSPORT_DSN
+              value: doctrine://default?queue_name=async
+            - name: MESSENGER_CHECKOUT_TRANSPORT_DSN
+              value: doctrine://default?queue_name=checkout_async
+          command:
+            - sh
+            - -c
+            - php /app/app/bin/console messenger:consume checkout_async async --time-limit=3600 --memory-limit=256M -vv
+          readinessProbe:
+            exec:
+              command:
+                - sh
+                - -c
+                - 'php -r "exit(@fsockopen(getenv(\"DB_HOST\") ?: \"service-symfony-shop-db\", 3306) ? 0 : 1);"'
+            initialDelaySeconds: 5
+            periodSeconds: 15
+            timeoutSeconds: 2
+            failureThreshold: 6
+          livenessProbe:
+            exec:
+              command:
+                - php
+                - -r
+                - 'exit(str_contains((string) @file_get_contents("/proc/1/cmdline"), "messenger:consume") ? 0 : 1);'
+            initialDelaySeconds: 20
+            periodSeconds: 20
+            timeoutSeconds: 5
+            failureThreshold: 3
+          resources:
+            requests:
+              cpu: "250m"
+              memory: "256Mi"
+            limits:
+              cpu: "1000m"
+              memory: "768Mi"

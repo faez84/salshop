@@ -1,0 +1,10 @@
+apiVersion: keda.sh/v1alpha1
+kind: TriggerAuthentication
+metadata:
+  name: symfony-worker-mysql-auth
+  namespace: default
+spec:
+  secretTargetRef:
+    - parameter: password
+      name: symfony-shop-db-secret
+      key: MYSQL_ROOT_PASSWORD

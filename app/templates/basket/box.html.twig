@@ -10,8 +10,10 @@
 					{{ product.price }}</p>
 			</a>
 			Count:
-			{{ basketProducts[product.id]['amount'] }}<a href="{{ path('add_basket_product_count', {productId: product.id}) }}" class="group">+</a>
-
+			{{ basketProducts[product.id] ?? 0 }}<a href="{{ path('add_basket_product_count', {productId: product.id}) }}" class="group">+</a>
+			<div>
+			Delete <a href="{{path('delete_basket_product', {productId: product.id})}}" class="group">x</a>
+			</div>
 		</div>
 	</a>
 </article>
