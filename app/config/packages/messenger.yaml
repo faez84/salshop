@@ -18,7 +18,10 @@ framework:
                     delay: 1000
                     multiplier: 2
                     max_delay: 30000
-            failed: 'doctrine://default?queue_name=failed'
+            failed:
+                dsn: '%env(MESSENGER_FAILED_TRANSPORT_DSN)%'
+                retry_strategy:
+                    max_retries: 0
             sync: 'sync://'
 
         default_bus: messenger.bus.command
@@ -32,6 +35,7 @@ framework:
             Symfony\Component\Notifier\Message\ChatMessage: async
             Symfony\Component\Notifier\Message\SmsMessage: async
             App\Checkout\Infrastructure\Messaging\Command\FinalizeOrderCommand: checkout_async
+            App\Shared\Infrastructure\Messaging\LoadTest\QueueLoadTestMessage: async
 
             # Route your messages to the transports
             # 'App\Message\YourMessage': async

@@ -1,25 +1,28 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: symfony-shop-worker
+  name: symfony-shop-deploy3
   labels:
-    app: symfony-shop-worker
-    type: worker
+    app: symfony-shop-deploy3
+    type: fe-end
 spec:
   replicas: 2
   selector:
     matchLabels:
-      app: symfony-shop-worker
-      type: worker
+      app: symfony-shopapp-new3
+      type: fe-end
   template:
     metadata:
+      name: symfony-shopapp-new3
       labels:
-        app: symfony-shop-worker
-        type: worker
+        app: symfony-shopapp-new3
+        type: fe-end
     spec:
       containers:
-        - name: worker
-          image: faezsal/symfony-shop-app:3.4.9
+        - name: symfony-shopapp-new3
+          # Build and push a FrankenPHP-enabled image, then set it here.
+          image: faezsal/symfony-shop-frankenphp:1.2.2
+          imagePullPolicy: Always
           env:
             - name: APP_ENV
               value: prod
@@ -40,8 +43,6 @@ spec:
                 secretKeyRef:
                   name: symfony-shop-secrets
                   key: DATABASE_REPLICA_URL
-            - name: DB_HOST
-              value: service-symfony-shop-db
             - name: REDIS_URL
               value: redis://redis:6379
             - name: CACHE_ADAPTER
@@ -77,29 +78,49 @@ spec:
                 secretKeyRef:
                   name: symfony-shop-secrets
                   key: MESSENGER_FAILED_TRANSPORT_DSN
+            - name: SERVER_NAME
+              value: ":80"
+            - name: APP_RUNTIME
+              value: Runtime\FrankenPhpSymfony\Runtime
+            - name: FRANKENPHP_CONFIG
+              value: |
+                num_threads 24
+                worker /app/public/index.php 16
           command:
             - sh
-            - -c
-            - php /app/app/bin/console messenger:consume checkout_async async --time-limit=3600 --memory-limit=256M --limit=5000 --failure-limit=50 -vv
+            - -lc
+            - |
+              if [ ! -f /app/vendor/autoload.php ] && [ -f /app/composer.json ]; then
+                composer install --no-interaction --prefer-dist --no-dev
+              fi
+              FRANKENPHP_BIN="$(command -v frankenphp || true)"
+              if [ -z "$FRANKENPHP_BIN" ] && [ -x /usr/local/bin/frankenphp ]; then FRANKENPHP_BIN=/usr/local/bin/frankenphp; fi
+              if [ -z "$FRANKENPHP_BIN" ] && [ -x /usr/bin/frankenphp ]; then FRANKENPHP_BIN=/usr/bin/frankenphp; fi
+              if [ -z "$FRANKENPHP_BIN" ]; then
+                echo "frankenphp binary not found in image (PATH=$PATH)"
+                ls -la /usr/local/bin /usr/bin || true
+                exit 127
+              fi
+              exec "$FRANKENPHP_BIN" run -c /etc/frankenphp/Caddyfile
+          ports:
+            - containerPort: 80
           readinessProbe:
-            exec:
-              command:
-                - sh
-                - -c
-                - 'php -r "exit(@fsockopen(getenv(\"DB_HOST\") ?: \"service-symfony-shop-db\", 3306) ? 0 : 1);"'
-            initialDelaySeconds: 5
-            periodSeconds: 15
-            timeoutSeconds: 2
+            httpGet:
+              path: /health/live
+              port: 80
+              scheme: HTTP
+            initialDelaySeconds: 10
+            periodSeconds: 10
+            timeoutSeconds: 3
             failureThreshold: 6
           livenessProbe:
-            exec:
-              command:
-                - php
-                - -r
-                - 'exit(str_contains((string) @file_get_contents("/proc/1/cmdline"), "messenger:consume") ? 0 : 1);'
-            initialDelaySeconds: 20
+            httpGet:
+              path: /health/live
+              port: 80
+              scheme: HTTP
+            initialDelaySeconds: 30
             periodSeconds: 20
-            timeoutSeconds: 5
+            timeoutSeconds: 3
             failureThreshold: 3
           resources:
             requests:
@@ -108,3 +129,11 @@ spec:
             limits:
               cpu: "1000m"
               memory: "768Mi"
+          volumeMounts:
+            - name: frankenphp-caddyfile
+              mountPath: /etc/frankenphp/Caddyfile
+              subPath: Caddyfile
+      volumes:
+        - name: frankenphp-caddyfile
+          configMap:
+            name: frankenphp-config

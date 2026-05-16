@@ -17,7 +17,7 @@ class PaypalPayment implements PaymentGateway
     ) {
     }
 
-    public function executePayment(): bool
+    public function executePayment(string $requestId): bool
     {
         // PayPal requires buyer approval + callback capture; it is not a synchronous bool flow.
         return false;

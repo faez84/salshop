@@ -142,9 +142,9 @@ class Address
         return $this;
     }
 
-    public function isDefualt(): ?bool
+    public function setIsDefault(bool $isDefault): static
     {
-        return $this->isDefault();
+        return $this->setDefault($isDefault);
     }
 
     public function setDefualt(bool $defualt): static

@@ -6,6 +6,7 @@ namespace App\Form;
 
 use App\Address\Infrastructure\Persistence\Doctrine\Address;
 use Symfony\Component\Form\AbstractType;
+use Symfony\Component\Form\Extension\Core\Type\CheckboxType;
 use Symfony\Component\Form\Extension\Core\Type\SubmitType;
 use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\OptionsResolver\OptionsResolver;
@@ -24,7 +25,10 @@ class AddressType extends AbstractType
                 'class' => 'border-1 border-blue-700'
             ]])
             ->add('zip')
-            ->add('isDefault')
+            ->add('isDefault', CheckboxType::class, [
+                'property_path' => 'default',
+                'required' => false,
+            ])
             ->add('save', SubmitType::class, [
                     'attr' =>
                         [

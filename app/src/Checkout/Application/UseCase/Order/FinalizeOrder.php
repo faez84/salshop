@@ -19,9 +19,9 @@ use App\Checkout\Application\Port\Persistence\IPrimaryConnectionSwitcher;
 use App\Checkout\Application\Port\Persistence\IProductReadRepository;
 use App\Checkout\Application\Port\Promotion\IPromotionManager;
 use App\Checkout\Domain\Entity\Order;
+use App\Checkout\Domain\ValueObject\PaymentMethod;
 use App\Checkout\Domain\ValueObject\OrderCheckoutResult;
 use App\Checkout\Infrastructure\Messaging\Command\FinalizeOrderCommand;
-use App\Checkout\Infrastructure\Payment\PaypalPayment;
 use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
 use Doctrine\ORM\EntityManagerInterface;
 use Psr\Log\LoggerInterface;
@@ -49,7 +49,6 @@ final class FinalizeOrder
         private readonly RequestStack $requestStack,
         private readonly LockFactory $lockFactory,
         private readonly EventDispatcherInterface $eventDispatcher,
-        private readonly PaypalPayment $paypalPayment,
         private readonly IPromotionManager $promotionManager,
         private readonly IPrimaryConnectionSwitcher $primaryConnectionSwitcher,
     ) {
@@ -64,7 +63,6 @@ final class FinalizeOrder
         ?string $paypalCancelUrl = null
     ): OrderCheckoutResult {
         $this->primaryConnectionSwitcher->forcePrimaryConnection();
-
         $this->logger->info('Checkout finalization requested.', [
             'addressId' => $addressId,
             'paymentMethod' => $payment->getPaymentName(),
@@ -145,7 +143,7 @@ final class FinalizeOrder
                 }
             }
 
-            if ($payment instanceof PaypalPayment) {
+            if (PaymentMethod::isPaypal($payment->getPaymentName())) {
                 return $this->processPaypalCheckout($payment, $order, $idempotencyKey, $paypalReturnUrl, $paypalCancelUrl);
             }
 
@@ -156,7 +154,7 @@ final class FinalizeOrder
     }
 
     private function processPaypalCheckout(
-        PaypalPayment $paypalPayment,
+        PaymentGateway $paymentGateway,
         Order $order,
         string $idempotencyKey,
         ?string $paypalReturnUrl,
@@ -169,7 +167,7 @@ final class FinalizeOrder
         }
 
         try {
-            $paypalOrder = $paypalPayment->createOrder(
+            $paypalOrder = $paymentGateway->createOrder(
                 (float) $order->getCost(),
                 'USD',
                 $paypalReturnUrl,

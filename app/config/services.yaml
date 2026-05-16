@@ -19,8 +19,15 @@ services:
         exclude:
             - '../src/DependencyInjection/'
             - '../src/DataFixtures/'
+            - '../src/Event/'
+            - '../src/Message/'
+            - '../src/**/Message/'
+            - '../src/**/Messaging/Command/'
+            - '../src/**/Domain/Event/'
             - '../src/**/Domain/Entity/'
+            - '../src/**/Domain/ValueObject/'
             - '../src/Factory/'
+            - '../src/Tests/'
 
 
             - '../src/Kernel.php'
@@ -29,6 +36,13 @@ services:
         factory: ['@App\Service\Search\ElasticsearchClientFactory', 'create']
         arguments:
             - '%env(string:ELASTICSEARCH_HOSTS)%'
+
+    App\Service\Search\ElasticsearchClientFactory: ~
+    App\Service\Search\CreateIndexCommand: ~
+    App\Service\Search\IndexProductCommand: ~
+    App\Service\Search\ProductSearchIndex: ~
+    App\Service\Search\ProductSearchAliasManager: ~
+
 
 #    payment.PaymentMethodValidator:
  #       class: App\Service\Payment\PaymentMethodValidator
@@ -58,6 +72,20 @@ services:
         alias: App\Address\Infrastructure\Persistence\Doctrine\AddressRepository
     App\Basket\Application\Port\IProductReadRepository:
         alias: App\Basket\Infrastructure\Persistence\Doctrine\BasketProductReadRepository
+    App\Checkout\Application\Port\Persistence\IProductReadRepository:
+        alias: App\Checkout\Infrastructure\Persistence\Doctrine\ProductRepository
+    App\Checkout\Application\Port\Persistence\IProductWriteRepository:
+        alias: App\Checkout\Infrastructure\Persistence\Doctrine\ProductRepository
+    App\Checkout\Application\Port\Persistence\IOrderProductRepository:
+        alias: App\Checkout\Infrastructure\Persistence\Doctrine\OrderProductRepository
+
+    App\Checkout\Application\UseCase\Payment\CreateExternalPayment:
+        arguments:
+            $paymentGateway: '@App\Checkout\Infrastructure\Payment\PaypalPayment'
+
+    App\Checkout\Application\UseCase\Payment\CaptureExternalPayment:
+        arguments:
+            $paymentGateway: '@App\Checkout\Infrastructure\Payment\PaypalPayment'
 
 
  

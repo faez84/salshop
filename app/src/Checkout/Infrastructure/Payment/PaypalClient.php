@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Checkout\Infrastructure\Payment;
 
+use App\Checkout\Domain\ValueObject\PaypalCreateOrderResult;
 use RuntimeException;
 use Symfony\Component\DependencyInjection\Attribute\Autowire;
 use Symfony\Contracts\HttpClient\HttpClientInterface;

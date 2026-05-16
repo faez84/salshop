@@ -1,5 +1,12 @@
 # Kubernetes Secrets Rollout
 
+## 0) Build and push FrankenPHP image
+
+```bash
+docker build -f container/frankenphp/Dockerfile -t faezsal/symfony-shop-frankenphp:3.2.0 .
+docker push faezsal/symfony-shop-frankenphp:3.2.0
+```
+
 ## 1) Set secret values in environment variables (PowerShell)
 
 ```powershell
@@ -28,7 +35,8 @@ powershell -ExecutionPolicy Bypass -File scripts/k8s/apply-secrets.ps1 -Namespac
 ## 3) Apply updated deployments
 
 ```bash
-kubectl apply -f kubernetes/appdeploy.yml
+kubectl apply -f kubernetes/frankenphp-configmap.yml
+kubectl apply -f kubernetes/appdeploy-frankenphp.yml
 kubectl apply -f kubernetes/workerdeploy.yml
 kubectl apply -f kubernetes/db.yml
 ```

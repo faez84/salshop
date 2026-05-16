@@ -28,6 +28,13 @@ class OrderRepository extends ServiceEntityRepository implements IOrderRepositor
         return $order;
     }
 
+    public function findById(int $orderId): ?Order
+    {
+        $order = $this->find($orderId);
+
+        return $order instanceof Order ? $order : null;
+    }
+
     public function findOneByIdempotencyKey(string $key): ?Order
     {
         return $this->findOneBy(['idempotencyKey' => $key]);

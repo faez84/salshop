@@ -5,12 +5,13 @@ declare(strict_types=1);
 namespace App\Checkout\Application\UseCase\Order;
 
 use App\Checkout\Application\Port\IOrderStateManager;
+use App\Checkout\Application\Port\Payment\PaymentGatewayResolver;
 use App\Checkout\Application\Port\Persistence\IOrderRepository;
 use App\Checkout\Application\Port\Persistence\IPrimaryConnectionSwitcher;
-use App\Checkout\Application\Port\Persistence\OrderCreated;
 use App\Checkout\Domain\Entity\Order;
+use App\Checkout\Domain\Event\OrderCreated;
+use App\Checkout\Domain\ValueObject\PaymentMethod;
 use App\Checkout\Domain\ValueObject\OrderCheckoutResult;
-use App\Checkout\Infrastructure\Payment\PaypalPayment;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 use Symfony\Component\Lock\LockFactory;
@@ -22,7 +23,7 @@ final class CreateOrder
        private readonly LockFactory $lockFactory,
        private readonly IOrderRepository $orderRepository,
        private readonly IOrderStateManager $orderStateManager,
-       private readonly PaypalPayment $paypalPayment,
+       private readonly PaymentGatewayResolver $paymentGatewayResolver,
        private readonly IPrimaryConnectionSwitcher $primaryConnectionSwitcher,
        private readonly EventDispatcherInterface $eventDispatcher,
     ) {
@@ -74,9 +75,10 @@ final class CreateOrder
                 return OrderCheckoutResult::failure('The selected order is not a PayPal checkout.');
             }
 
+            $paypalGateway = $this->paymentGatewayResolver->getPaymentMethod(PaymentMethod::PAYPAL->value);
             $captureRequestId = ($order->getIdempotencyKey() ?? ('order-' . $order->getId())) . '-capture';
             try {
-                $captured = $this->paypalPayment->captureOrder($providerOrderId, $captureRequestId);
+                $captured = $paypalGateway->captureOrder($providerOrderId, $captureRequestId);
             } catch (\Throwable $exception) {
                 $this->logger->error('PayPal capture failed due to exception.', [
                     'orderId' => $order->getId(),

@@ -7,10 +7,11 @@ namespace App\Controller\Admin;
 use App\Catalog\Infrastructure\Persistence\Doctrine\Category;
 use App\Checkout\Infrastructure\Persistence\Doctrine\Order;
 use App\Checkout\Infrastructure\Persistence\Doctrine\OrderProduct;
+use App\Checkout\Application\Port\Messaging\QueryBus;
+use App\Checkout\Infrastructure\Messaging\Query\GetOrderStatsLastThreeMonthsQuery;
+use App\Checkout\Infrastructure\Messaging\Query\OrderStatsPointView;
 use App\Catalog\Infrastructure\Persistence\Doctrine\Product;
 use App\User\Infrastructure\Persistence\Doctrine\User;
-use App\Checkout\Infrastructure\Persistence\Doctrine\OrderRepository;
-use Doctrine\ORM\EntityManagerInterface;
 use EasyCorp\Bundle\EasyAdminBundle\Attribute\AdminDashboard;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Asset;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Assets;
@@ -32,8 +33,8 @@ use Symfony\UX\Chartjs\Model\Chart;
 class DashboardController extends AbstractDashboardController
 {
     public function __construct(
-        private ChartBuilderInterface $chartBuilder,
-        private EntityManagerInterface $em
+        private readonly ChartBuilderInterface $chartBuilder,
+        private readonly QueryBus $queryBus
     ) {
     }
 
@@ -44,18 +45,28 @@ class DashboardController extends AbstractDashboardController
     public function index(): Response
     {
         $chart = $this->chartBuilder->createChart(Chart::TYPE_BAR);
-        /** @var OrderRepository $orderRepository */
-        $orderRepository = $this->em->getRepository(Order::class);
-        $result = $orderRepository->findOrderInLastThreeMonths();
+        $stats = $this->queryBus->askNullable(new GetOrderStatsLastThreeMonthsQuery());
+        $result = is_array($stats) ? $stats : [];
+
+        $labels = [];
+        $counts = [];
+        foreach ($result as $point) {
+            if (!$point instanceof OrderStatsPointView) {
+                continue;
+            }
+
+            $labels[] = $point->getDateAsDay();
+            $counts[] = $point->getOrderCount();
+        }
 
         $chart->setData([
-            'labels' => array_column($result, "dateAsDay"),
+            'labels' => $labels,
             'datasets' => [
                 [
                     'label' => 'Created Orders',
                     'backgroundColor' => 'rgb(0, 0, 0)',
                     'borderColor' => 'rgb(0, 0, 0)',
-                    'data' => array_column($result, column_key: "orderCount"),
+                    'data' => $counts,
                 ],
             ],
         ]);

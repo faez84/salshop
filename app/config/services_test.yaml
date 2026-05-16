@@ -37,6 +37,14 @@ services:
         autowire: true
         public: true
 
+    App\Checkout\Application\UseCase\Payment\CreateExternalPayment:
+        arguments:
+            $paymentGateway: '@App\Checkout\Infrastructure\Payment\PaypalPayment'
+
+    App\Checkout\Application\UseCase\Payment\CaptureExternalPayment:
+        arguments:
+            $paymentGateway: '@App\Checkout\Infrastructure\Payment\PaypalPayment'
+
     # add more service definitions when explicit configuration is needed
     # please note that last definitions always *replace* previous ones
 #fos_http_cache:

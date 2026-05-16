@@ -6,13 +6,14 @@ namespace App\Checkout\Infrastructure\Persistence\Doctrine;
 
 use App\Catalog\Infrastructure\Persistence\Doctrine\Product;
 use App\Checkout\Application\Port\Persistence\IProductReadRepository;
+use App\Checkout\Application\Port\Persistence\IProductWriteRepository;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
 
 /**
  * @extends ServiceEntityRepository<Product>
  */
-class ProductRepository extends ServiceEntityRepository implements IProductReadRepository
+class ProductRepository extends ServiceEntityRepository implements IProductReadRepository, IProductWriteRepository
 {
     public function __construct(ManagerRegistry $registry)
     {

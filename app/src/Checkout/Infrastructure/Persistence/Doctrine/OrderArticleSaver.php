@@ -6,13 +6,17 @@ namespace App\Checkout\Infrastructure\Persistence\Doctrine;
 
 use App\Catalog\Infrastructure\Persistence\Doctrine\Product;
 use App\Checkout\Application\Port\IOrderArticleSaver;
+use App\Checkout\Application\Port\Persistence\IOrderProductRepository;
+use App\Checkout\Application\Port\Persistence\IProductReadRepository;
+use App\Checkout\Application\Port\Persistence\IProductWriteRepository;
 use RuntimeException;
 
 class OrderArticleSaver implements IOrderArticleSaver
 {
     public function __construct(
-        readonly protected OrderProductRepository $orderProductRepository,
-        readonly protected ProductRepository $productRepository
+        readonly protected IOrderProductRepository $orderProductRepository,
+        readonly protected IProductReadRepository $productReadRepository,
+        readonly protected IProductWriteRepository $productWriteRepository
     )
     {
     }
@@ -24,7 +28,7 @@ class OrderArticleSaver implements IOrderArticleSaver
             return;
         }
 
-        $productsById ??= $this->productRepository->findByIdsIndexed(array_keys($normalizedProducts));
+        $productsById ??= $this->productReadRepository->findByIdsIndexed(array_keys($normalizedProducts));
 
         foreach ($normalizedProducts as $productId => $amount) {
             $product = $productsById[$productId] ?? null;
@@ -39,7 +43,7 @@ class OrderArticleSaver implements IOrderArticleSaver
 
             $cost = (float) $product->getPrice() * $amount;
             $this->orderProductRepository->save(OrderProduct::create($amount, $cost, $order, $product), false);
-            $this->productRepository->updateQuantity($product, $quantity - $amount, false);
+            $this->productWriteRepository->updateQuantity($product, $quantity - $amount, false);
         }
     }
 

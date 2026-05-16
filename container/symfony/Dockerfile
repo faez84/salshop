@@ -18,8 +18,12 @@ RUN apt-get install -y  libzip-dev zip && \
 
 COPY ./container/symfony/php-fpm-pool-performance.conf /usr/local/etc/php-fpm.d/zz-www-performance.conf
 
-Copy ./ /app
+COPY ./ /app
 WORKDIR /app
+
+# Install PHP dependencies into /app/app/vendor during image build.
+# We skip scripts to avoid requiring runtime env (DB/Redis) while building.
+RUN composer install --working-dir=/app/app --no-dev --prefer-dist --no-interaction --optimize-autoloader --no-scripts
 
 RUN usermod -u 1000 www-data
 RUN usermod -G 100 www-data

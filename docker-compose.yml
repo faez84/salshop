@@ -27,8 +27,9 @@ services:
       - app_var:/app/var
     environment:
       DATABASE_URL: mysql://root:root@db/shopnewnew
-      MESSENGER_TRANSPORT_DSN: doctrine://default?queue_name=async
-      MESSENGER_CHECKOUT_TRANSPORT_DSN: doctrine://default?queue_name=checkout_async
+      MESSENGER_TRANSPORT_DSN: amqp://guest:guest@rabbitmq:5672/%2f/async
+      MESSENGER_CHECKOUT_TRANSPORT_DSN: amqp://guest:guest@rabbitmq:5672/%2f/checkout_async
+      MESSENGER_FAILED_TRANSPORT_DSN: amqp://guest:guest@rabbitmq:5672/%2f/failed
       REDIS_URL: redis://redis:6379
       SESSION_HANDLER_DSN: redis://redis:6379
       LOCK_DSN: redis://redis:6379
@@ -54,8 +55,9 @@ services:
       APP_ENV: dev
       APP_DEBUG: 1
       DATABASE_URL: mysql://root:root@db/shopnewnew
-      MESSENGER_TRANSPORT_DSN: doctrine://default?queue_name=async
-      MESSENGER_CHECKOUT_TRANSPORT_DSN: doctrine://default?queue_name=checkout_async
+      MESSENGER_TRANSPORT_DSN: amqp://guest:guest@rabbitmq:5672/%2f/async
+      MESSENGER_CHECKOUT_TRANSPORT_DSN: amqp://guest:guest@rabbitmq:5672/%2f/checkout_async
+      MESSENGER_FAILED_TRANSPORT_DSN: amqp://guest:guest@rabbitmq:5672/%2f/failed
       REDIS_URL: redis://redis:6379
       SESSION_HANDLER_DSN: redis://redis:6379
       LOCK_DSN: redis://redis:6379
@@ -80,8 +82,9 @@ services:
       - app_var:/app/var
     environment:
       DATABASE_URL: mysql://root:root@db/shopnewnew
-      MESSENGER_TRANSPORT_DSN: doctrine://default?queue_name=async
-      MESSENGER_CHECKOUT_TRANSPORT_DSN: doctrine://default?queue_name=checkout_async
+      MESSENGER_TRANSPORT_DSN: amqp://guest:guest@rabbitmq:5672/%2f/async
+      MESSENGER_CHECKOUT_TRANSPORT_DSN: amqp://guest:guest@rabbitmq:5672/%2f/checkout_async
+      MESSENGER_FAILED_TRANSPORT_DSN: amqp://guest:guest@rabbitmq:5672/%2f/failed
       REDIS_URL: redis://redis:6379
       SESSION_HANDLER_DSN: redis://redis:6379
       LOCK_DSN: redis://redis:6379

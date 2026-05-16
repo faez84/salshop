@@ -1,17 +1,4 @@
 apiVersion: v1
-kind: Secret
-metadata:
-  name: symfony-shop-db-secret
-type: Opaque
-stringData:
-  MYSQL_ROOT_PASSWORD: REPLACE_WITH_STRONG_ROOT_PASSWORD
-  MYSQL_DATABASE: REPLACE_WITH_DB_NAME
-  MYSQL_USER: REPLACE_WITH_DB_USER
-  MYSQL_PASSWORD: REPLACE_WITH_DB_PASSWORD
-  MYSQL_REPLICATION_USER: REPLACE_WITH_REPL_USER
-  MYSQL_REPLICATION_PASSWORD: REPLACE_WITH_REPL_PASSWORD
----
-apiVersion: v1
 kind: ConfigMap
 metadata:
   name: symfony-shop-db-primary-init
@@ -175,17 +162,17 @@ spec:
                 secretKeyRef:
                   name: symfony-shop-db-secret
                   key: MYSQL_ROOT_PASSWORD
-            - name: MYSQL_DATABASE
+            - name: APP_DB_NAME
               valueFrom:
                 secretKeyRef:
                   name: symfony-shop-db-secret
                   key: MYSQL_DATABASE
-            - name: MYSQL_USER
+            - name: APP_DB_USER
               valueFrom:
                 secretKeyRef:
                   name: symfony-shop-db-secret
                   key: MYSQL_USER
-            - name: MYSQL_PASSWORD
+            - name: APP_DB_PASSWORD
               valueFrom:
                 secretKeyRef:
                   name: symfony-shop-db-secret
@@ -215,24 +202,50 @@ spec:
                   - -c
                   - |
                     set +e
+                    APP_DB="${APP_DB_NAME:-shopnewnew}"
 
-                    # Wait for local mysqld.
+                    # Wait for local mysqld to accept root credentials.
                     until mysqladmin ping -h 127.0.0.1 -uroot -p"${MYSQL_ROOT_PASSWORD}" --silent; do
                       sleep 2
                     done
 
-                    # Wait for primary service TCP reachability (auth can vary, so keep this check simple).
-                    until mysqladmin ping -h service-symfony-shop-db --silent; do
+                    # Wait for primary database to be reachable with app user.
+                    until mysqladmin ping -h service-symfony-shop-db -u"${APP_DB_USER}" -p"${APP_DB_PASSWORD}" --silent; do
                       sleep 2
                     done
 
-                    mysql -uroot -p"${MYSQL_ROOT_PASSWORD}" -e "STOP REPLICA;" || true
-                    mysql -uroot -p"${MYSQL_ROOT_PASSWORD}" -e "RESET REPLICA ALL;" || true
-                    mysql -uroot -p"${MYSQL_ROOT_PASSWORD}" -e "CHANGE REPLICATION SOURCE TO SOURCE_HOST='service-symfony-shop-db', SOURCE_PORT=3306, SOURCE_USER='${MYSQL_REPLICATION_USER}', SOURCE_PASSWORD='${MYSQL_REPLICATION_PASSWORD}', SOURCE_AUTO_POSITION=1, GET_SOURCE_PUBLIC_KEY=1, SOURCE_CONNECT_RETRY=3, SOURCE_RETRY_COUNT=86400;" || true
-                    mysql -uroot -p"${MYSQL_ROOT_PASSWORD}" -e "START REPLICA;" || true
-                    mysql -uroot -p"${MYSQL_ROOT_PASSWORD}" -e "SHOW REPLICA STATUS\\G" || true
+                    # Seed replica from primary only when app database is missing.
+                    DB_EXISTS="$(mysql -h127.0.0.1 -uroot -p"${MYSQL_ROOT_PASSWORD}" -Nse "SELECT SCHEMA_NAME FROM INFORMATION_SCHEMA.SCHEMATA WHERE SCHEMA_NAME='${APP_DB}' LIMIT 1;")"
+                    if [ "${DB_EXISTS}" != "${APP_DB}" ]; then
+                      mysql -h127.0.0.1 -uroot -p"${MYSQL_ROOT_PASSWORD}" -e "STOP REPLICA; RESET REPLICA ALL; SET GLOBAL super_read_only=OFF; SET GLOBAL read_only=OFF;" || true
+                      mysql -h127.0.0.1 -uroot -p"${MYSQL_ROOT_PASSWORD}" -e "CREATE DATABASE IF NOT EXISTS \`${APP_DB}\`;" || true
+                      mysqldump -h service-symfony-shop-db -u"${APP_DB_USER}" -p"${APP_DB_PASSWORD}" --single-transaction --routines --triggers --set-gtid-purged=AUTO --databases "${APP_DB}" \
+                        | mysql -h127.0.0.1 -uroot -p"${MYSQL_ROOT_PASSWORD}" || true
+                    fi
 
-                    # Do not fail container lifecycle if replication bootstrap is temporarily unavailable.
+                    # Configure and start GTID replication.
+                    mysql -h127.0.0.1 -uroot -p"${MYSQL_ROOT_PASSWORD}" -e "STOP REPLICA; RESET REPLICA ALL;" || true
+                    mysql -h127.0.0.1 -uroot -p"${MYSQL_ROOT_PASSWORD}" -e "CHANGE REPLICATION SOURCE TO SOURCE_HOST='service-symfony-shop-db', SOURCE_PORT=3306, SOURCE_USER='${MYSQL_REPLICATION_USER}', SOURCE_PASSWORD='${MYSQL_REPLICATION_PASSWORD}', SOURCE_AUTO_POSITION=1, GET_SOURCE_PUBLIC_KEY=1, SOURCE_CONNECT_RETRY=3, SOURCE_RETRY_COUNT=86400;" || true
+                    mysql -h127.0.0.1 -uroot -p"${MYSQL_ROOT_PASSWORD}" -e "START REPLICA; SET GLOBAL read_only=ON; SET GLOBAL super_read_only=ON;" || true
+
+                    # Self-heal common duplicate-user conflict on previously repaired replicas.
+                    i=0
+                    while [ "$i" -lt 30 ]; do
+                      LAST_SQL_ERRNO="$(mysql -h127.0.0.1 -uroot -p"${MYSQL_ROOT_PASSWORD}" -e "SHOW REPLICA STATUS\\G" | awk '/Last_SQL_Errno:/ {print $2}' | tail -1)"
+                      if [ "${LAST_SQL_ERRNO}" = "1396" ]; then
+                        mysql -h127.0.0.1 -uroot -p"${MYSQL_ROOT_PASSWORD}" -e "SET GLOBAL super_read_only=OFF; SET GLOBAL read_only=OFF; STOP REPLICA SQL_THREAD; DROP USER IF EXISTS '${APP_DB_USER}'@'%'; START REPLICA SQL_THREAD; SET GLOBAL read_only=ON; SET GLOBAL super_read_only=ON;" || true
+                        break
+                      fi
+                      if [ "${LAST_SQL_ERRNO}" = "0" ]; then
+                        break
+                      fi
+                      i=$((i+1))
+                      sleep 2
+                    done
+
+                    mysql -h127.0.0.1 -uroot -p"${MYSQL_ROOT_PASSWORD}" -e "SHOW REPLICA STATUS\\G" || true
+
+                    # Keep pod alive even if source is briefly unavailable during startup.
                     exit 0
           startupProbe:
             exec:
@@ -267,7 +280,7 @@ spec:
       volumes:
         - name: mysql-replica-data
           persistentVolumeClaim:
-            claimName: symfony-shop-db-replica-pvc
+            claimName: symfony-shop-db-replica-pvc-v2
 ---
 apiVersion: v1
 kind: PersistentVolumeClaim
@@ -283,7 +296,7 @@ spec:
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
-  name: symfony-shop-db-replica-pvc
+  name: symfony-shop-db-replica-pvc-v2
 spec:
   accessModes:
     - ReadWriteOnce

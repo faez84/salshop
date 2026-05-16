@@ -1,10 +1,10 @@
 apiVersion: keda.sh/v1alpha1
 kind: TriggerAuthentication
 metadata:
-  name: symfony-worker-mysql-auth
+  name: symfony-worker-rabbitmq-auth
   namespace: default
 spec:
   secretTargetRef:
-    - parameter: password
-      name: symfony-shop-db-secret
-      key: MYSQL_ROOT_PASSWORD
+    - parameter: host
+      name: symfony-shop-secrets
+      key: KEDA_RABBITMQ_HOST

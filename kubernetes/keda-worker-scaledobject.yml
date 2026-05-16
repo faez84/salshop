@@ -12,18 +12,21 @@ spec:
   minReplicaCount: 2
   maxReplicaCount: 12
   triggers:
-    - type: mysql
+    - type: rabbitmq
       metadata:
-        host: service-symfony-shop-db.default.svc.cluster.local
-        port: "3306"
-        username: root
-        dbName: shopnewnew
-        query: >
-          SELECT COUNT(*)
-          FROM messenger_messages
-          WHERE queue_name IN ('async', 'checkout_async')
-            AND delivered_at IS NULL
-        queryValue: "20"
-        activationQueryValue: "1"
+        protocol: amqp
+        queueName: async
+        mode: QueueLength
+        value: "20"
+        activationValue: "1"
       authenticationRef:
-        name: symfony-worker-mysql-auth
+        name: symfony-worker-rabbitmq-auth
+    - type: rabbitmq
+      metadata:
+        protocol: amqp
+        queueName: checkout_async
+        mode: QueueLength
+        value: "20"
+        activationValue: "1"
+      authenticationRef:
+        name: symfony-worker-rabbitmq-auth

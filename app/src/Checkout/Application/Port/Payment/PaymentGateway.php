@@ -8,7 +8,8 @@ use App\Checkout\Domain\ValueObject\PaypalCreateOrderResult;
 
 interface PaymentGateway
 {
-    public function executePayment(): bool;
+    public function executePayment(string $requestId): bool;
+
     public function createOrder(
         float $amount,
         string $currencyCode,
@@ -16,7 +17,9 @@ interface PaymentGateway
         string $cancelUrl,
         string $requestId
     ): PaypalCreateOrderResult;
-public function captureOrder(string $providerOrderId, string $requestId): bool;
+
+    public function captureOrder(string $providerOrderId, string $requestId): bool;
+
     public function getPaymentName(): string;
 
     public function setPayment(string $paymentName): void;
